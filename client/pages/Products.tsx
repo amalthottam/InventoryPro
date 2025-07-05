@@ -258,20 +258,20 @@ export default function Products() {
 
     const updatedProduct: Product = {
       ...editingProduct,
-      productName: formData.productName,
-      productId: formData.productId,
-      category: formData.category,
-      stock: parseInt(formData.stock),
-      brand: formData.brand,
-      unit: formData.unit,
-      status: getStatus(parseInt(formData.stock)),
+      productName: editFormData.productName,
+      productId: editFormData.productId,
+      category: editFormData.category,
+      stock: parseInt(editFormData.stock),
+      brand: editFormData.brand,
+      unit: editFormData.unit,
+      status: getStatus(parseInt(editFormData.stock)),
       lastUpdated: new Date().toISOString().split("T")[0],
     };
 
     setProducts(
       products.map((p) => (p.id === editingProduct.id ? updatedProduct : p)),
     );
-    setFormData({
+    setEditFormData({
       productName: "",
       productId: "",
       category: "",
