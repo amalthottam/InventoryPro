@@ -112,20 +112,6 @@ export default function Dashboard() {
     },
   ];
 
-  const getStatusBadge = (status: string) => {
-    const variants = {
-      "In Stock": "default",
-      "Low Stock": "secondary",
-      "Out of Stock": "destructive",
-    } as const;
-
-    return (
-      <Badge variant={variants[status as keyof typeof variants]}>
-        {status}
-      </Badge>
-    );
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
       <Navigation onLogout={handleLogout} />
