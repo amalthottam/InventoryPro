@@ -187,19 +187,6 @@ export default function Settings() {
     navigate("/login");
   };
 
-  const getRoleBadge = (role: string) => {
-    const variants = {
-      "Super Admin": "destructive",
-      Admin: "default",
-      Manager: "secondary",
-      Staff: "outline",
-    } as const;
-
-    return (
-      <Badge variant={variants[role as keyof typeof variants]}>{role}</Badge>
-    );
-  };
-
   const getStatusBadge = (status: string) => {
     const variants = {
       Active: "default",
