@@ -15,9 +15,11 @@
     "build": "npm run build:client && npm run build:server",
     "build:client": "vite build",
     "build:server": "vite build --config vite.config.server.js",
-    "start": "node dist/server/node-build.mjs",
+    "start": "node dist/server/production.mjs",
     "test": "vitest --run",
-    "format.fix": "prettier --write ."
+    "format.fix": "prettier --write .",
+    "aws:install": "npm install --save aws-amplify @aws-sdk/client-cognito-identity-provider @aws-sdk/client-lambda @aws-sdk/client-rds mysql2 @aws-sdk/client-ses",
+    "aws:dev-install": "npm install --save-dev serverless serverless-webpack webpack"
   },
   "dependencies": {
     "express": "^4.18.2",
