@@ -57,7 +57,7 @@ interface Product {
   productId: string;
   category: string;
   stock: number;
-  brand: string;
+  storeName: string;
   unit: string;
   status: "Available" | "Low Stock" | "Out of Stock";
   lastUpdated: string;
@@ -76,7 +76,7 @@ export default function Products() {
     productId: "",
     category: "",
     stock: "",
-    brand: "",
+    storeName: "",
     unit: "",
   });
   const [editFormData, setEditFormData] = useState({
@@ -84,7 +84,7 @@ export default function Products() {
     productId: "",
     category: "",
     stock: "",
-    brand: "",
+    storeName: "",
     unit: "",
   });
 
@@ -104,7 +104,7 @@ export default function Products() {
         productId: "ORG-BAN-001",
         category: "Fruits & Vegetables",
         stock: 120,
-        brand: "Fresh Farm",
+        storeName: "Fresh Farm",
         unit: "kg",
         status: "Available",
         lastUpdated: "2024-01-15",
@@ -115,7 +115,7 @@ export default function Products() {
         productId: "WHL-MLK-002",
         category: "Dairy",
         stock: 8,
-        brand: "Pure Dairy",
+        storeName: "Pure Dairy",
         unit: "liter",
         status: "Low Stock",
         lastUpdated: "2024-01-14",
@@ -126,7 +126,7 @@ export default function Products() {
         productId: "BRN-BRD-003",
         category: "Bakery",
         stock: 0,
-        brand: "Baker's Best",
+        storeName: "Baker's Best",
         unit: "loaf",
         status: "Out of Stock",
         lastUpdated: "2024-01-13",
@@ -137,7 +137,7 @@ export default function Products() {
         productId: "JAS-RIC-004",
         category: "Grains & Cereals",
         stock: 45,
-        brand: "Golden Harvest",
+        storeName: "Golden Harvest",
         unit: "kg",
         status: "Available",
         lastUpdated: "2024-01-15",
@@ -148,7 +148,7 @@ export default function Products() {
         productId: "FCH-BRS-005",
         category: "Meat & Poultry",
         stock: 15,
-        brand: "Farm Fresh",
+        storeName: "Farm Fresh",
         unit: "kg",
         status: "Available",
         lastUpdated: "2024-01-15",
@@ -159,7 +159,7 @@ export default function Products() {
         productId: "GRK-YOG-006",
         category: "Dairy",
         stock: 6,
-        brand: "Mediterranean",
+        storeName: "Mediterranean",
         unit: "cup",
         status: "Low Stock",
         lastUpdated: "2024-01-14",
@@ -170,7 +170,7 @@ export default function Products() {
         productId: "EVO-OIL-007",
         category: "Cooking Essentials",
         stock: 32,
-        brand: "Olive Grove",
+        storeName: "Olive Grove",
         unit: "bottle",
         status: "Available",
         lastUpdated: "2024-01-15",
@@ -181,7 +181,7 @@ export default function Products() {
         productId: "FSH-SAL-008",
         category: "Seafood",
         stock: 12,
-        brand: "Ocean Fresh",
+        storeName: "Ocean Fresh",
         unit: "kg",
         status: "Available",
         lastUpdated: "2024-01-15",
@@ -218,7 +218,7 @@ export default function Products() {
     const matchesSearch =
       product.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.productId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.brand.toLowerCase().includes(searchTerm.toLowerCase());
+      product.storeName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory =
       categoryFilter === "all" || product.category === categoryFilter;
     return matchesSearch && matchesCategory;
@@ -234,7 +234,7 @@ export default function Products() {
       productId: addFormData.productId,
       category: addFormData.category,
       stock: parseInt(addFormData.stock),
-      brand: addFormData.brand,
+      storeName: addFormData.storeName,
       unit: addFormData.unit,
       status: getStatus(parseInt(addFormData.stock)),
       lastUpdated: new Date().toISOString().split("T")[0],
@@ -262,7 +262,7 @@ export default function Products() {
       productId: editFormData.productId,
       category: editFormData.category,
       stock: parseInt(editFormData.stock),
-      brand: editFormData.brand,
+      storeName: editFormData.storeName,
       unit: editFormData.unit,
       status: getStatus(parseInt(editFormData.stock)),
       lastUpdated: new Date().toISOString().split("T")[0],
@@ -294,7 +294,7 @@ export default function Products() {
       productId: product.productId,
       category: product.category,
       stock: product.stock.toString(),
-      brand: product.brand,
+      storeName: product.storeName,
       unit: product.unit,
     });
     setIsEditDialogOpen(true);
@@ -384,12 +384,12 @@ export default function Products() {
           </Select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="brand">Brand</Label>
+          <Label htmlFor="storeName">Store Name</Label>
           <Input
-            id="brand"
-            value={formData.brand}
+            id="storeName"
+            value={formData.storeName}
             onChange={(e) =>
-              setFormData({ ...formData, brand: e.target.value })
+              setFormData({ ...formData, storeName: e.target.value })
             }
             placeholder="e.g., Fresh Farm"
             required
@@ -572,7 +572,7 @@ export default function Products() {
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Search products, brands, or IDs..."
+                      placeholder="Search products, store names, or IDs..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-10"
@@ -620,7 +620,9 @@ export default function Products() {
                         Product ID
                       </TableHead>
                       <TableHead className="font-semibold">Category</TableHead>
-                      <TableHead className="font-semibold">Brand</TableHead>
+                      <TableHead className="font-semibold">
+                        Store Name
+                      </TableHead>
                       <TableHead className="font-semibold">Stock</TableHead>
                       <TableHead className="font-semibold">Unit</TableHead>
                       <TableHead className="font-semibold">Status</TableHead>
@@ -647,7 +649,7 @@ export default function Products() {
                         <TableCell>
                           <Badge variant="outline">{product.category}</Badge>
                         </TableCell>
-                        <TableCell>{product.brand}</TableCell>
+                        <TableCell>{product.storeName}</TableCell>
                         <TableCell className="font-semibold">
                           {product.stock}
                         </TableCell>
