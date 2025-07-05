@@ -230,18 +230,18 @@ export default function Products() {
     e.preventDefault();
     const newProduct: Product = {
       id: Math.random().toString(36).substr(2, 9),
-      productName: formData.productName,
-      productId: formData.productId,
-      category: formData.category,
-      stock: parseInt(formData.stock),
-      brand: formData.brand,
-      unit: formData.unit,
-      status: getStatus(parseInt(formData.stock)),
+      productName: addFormData.productName,
+      productId: addFormData.productId,
+      category: addFormData.category,
+      stock: parseInt(addFormData.stock),
+      brand: addFormData.brand,
+      unit: addFormData.unit,
+      status: getStatus(parseInt(addFormData.stock)),
       lastUpdated: new Date().toISOString().split("T")[0],
     };
 
     setProducts([...products, newProduct]);
-    setFormData({
+    setAddFormData({
       productName: "",
       productId: "",
       category: "",
