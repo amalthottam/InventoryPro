@@ -308,7 +308,7 @@ export default function Forecasting() {
                         </div>
                         <div className="flex items-center gap-6 text-sm text-muted-foreground">
                           <span className="font-mono">{item.productId}</span>
-                          <Badge variant="outline">{item.category}</Badge>
+                          <CategoryBadge category={item.category} />
                           <span>Confidence: {item.confidence}%</span>
                         </div>
                       </div>
