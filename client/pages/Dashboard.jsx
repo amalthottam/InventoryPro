@@ -217,176 +217,186 @@ export default function Dashboard() {
     <div className="min-h-screen bg-background">
       <Navigation onLogout={handleLogout} />
 
-      <main className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              Welcome back, {user?.attributes?.given_name || "User"}!
-            </h1>
-            <p className="text-muted-foreground">
-              {currentTime.toLocaleDateString("en-US", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}{" "}
-              •{" "}
-              {currentTime.toLocaleTimeString("en-US", { timeStyle: "short" })}
-            </p>
-            {user?.attributes?.["custom:store_id"] && (
-              <Badge variant="secondary" className="mt-2">
-                Store: {user.attributes["custom:store_id"]}
-              </Badge>
-            )}
+      <div className="lg:pl-64">
+        <main className="container mx-auto px-4 py-8">
+          {/* Header */}
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">
+                Welcome back, {user?.attributes?.given_name || "User"}!
+              </h1>
+              <p className="text-muted-foreground">
+                {currentTime.toLocaleDateString("en-US", {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}{" "}
+                •{" "}
+                {currentTime.toLocaleTimeString("en-US", {
+                  timeStyle: "short",
+                })}
+              </p>
+              {user?.attributes?.["custom:store_id"] && (
+                <Badge variant="secondary" className="mt-2">
+                  Store: {user.attributes["custom:store_id"]}
+                </Badge>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={() => navigate("/products")}>
+                <Eye className="h-4 w-4 mr-2" />
+                View Inventory
+              </Button>
+              <Button onClick={() => navigate("/products?action=add")}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Product
+              </Button>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <Button onClick={() => navigate("/products")}>
-              <Eye className="h-4 w-4 mr-2" />
-              View Inventory
-            </Button>
-            <Button onClick={() => navigate("/products?action=add")}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Product
-            </Button>
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {stats.map((stat, index) => (
+              <StatCard key={index} {...stat} />
+            ))}
           </div>
-        </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat, index) => (
-            <StatCard key={index} {...stat} />
-          ))}
-        </div>
+          {/* Dashboard Content */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Low Stock Alert */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-xl">Low Stock Alert</CardTitle>
+                  <CardDescription>
+                    Items that need immediate attention
+                  </CardDescription>
+                </div>
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {lowStockItems.length > 0 ? (
+                    lowStockItems.map((item, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+                      >
+                        <div>
+                          <p className="font-medium">{item.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {item.category}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-medium text-destructive">
+                            {item.current} / {item.minimum}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            current / minimum
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-center text-muted-foreground py-4">
+                      All items are well stocked! 🎉
+                    </p>
+                  )}
+                </div>
+                {lowStockItems.length > 0 && (
+                  <Button
+                    variant="outline"
+                    className="w-full mt-4"
+                    onClick={() => navigate("/products?filter=lowstock")}
+                  >
+                    View All Low Stock Items
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
 
-        {/* Dashboard Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Low Stock Alert */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-xl">Low Stock Alert</CardTitle>
-                <CardDescription>
-                  Items that need immediate attention
-                </CardDescription>
-              </div>
-              <AlertTriangle className="h-5 w-5 text-destructive" />
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {lowStockItems.length > 0 ? (
-                  lowStockItems.map((item, index) => (
+            {/* Recent Activity */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl">Recent Activity</CardTitle>
+                <CardDescription>Latest inventory transactions</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {recentTransactions.map((transaction, index) => (
                     <div
                       key={index}
                       className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
                     >
                       <div>
-                        <p className="font-medium">{item.name}</p>
+                        <p className="font-medium">{transaction.product}</p>
                         <p className="text-sm text-muted-foreground">
-                          {item.category}
+                          {transaction.type} • {transaction.time}
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-medium text-destructive">
-                          {item.current} / {item.minimum}
+                        <p className="font-medium">
+                          {transaction.type === "Sale" ? "-" : "+"}
+                          {transaction.quantity}
                         </p>
-                        <p className="text-xs text-muted-foreground">
-                          current / minimum
+                        <p className="text-sm text-muted-foreground">
+                          ${transaction.amount.toFixed(2)}
                         </p>
                       </div>
                     </div>
-                  ))
-                ) : (
-                  <p className="text-center text-muted-foreground py-4">
-                    All items are well stocked! 🎉
-                  </p>
-                )}
-              </div>
-              {lowStockItems.length > 0 && (
+                  ))}
+                </div>
                 <Button
                   variant="outline"
                   className="w-full mt-4"
-                  onClick={() => navigate("/products?filter=lowstock")}
+                  onClick={() => navigate("/transactions")}
                 >
-                  View All Low Stock Items
+                  View All Transactions
                 </Button>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          {/* Recent Activity */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-xl">Recent Activity</CardTitle>
-              <CardDescription>Latest inventory transactions</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {recentTransactions.map((transaction, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
-                  >
-                    <div>
-                      <p className="font-medium">{transaction.product}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {transaction.type} • {transaction.time}
-                      </p>
+            {/* Top Categories */}
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle className="text-xl">
+                  Top Selling Categories
+                </CardTitle>
+                <CardDescription>
+                  Best performing product categories this month
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {analyticsData?.topSellingCategories?.map(
+                    (category, index) => (
+                      <div
+                        key={index}
+                        className="p-4 bg-muted/50 rounded-lg text-center"
+                      >
+                        <p className="font-semibold text-lg">{category.name}</p>
+                        <p className="text-2xl font-bold text-primary">
+                          {category.sales}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          units sold
+                        </p>
+                      </div>
+                    ),
+                  ) || (
+                    <div className="col-span-3 text-center text-muted-foreground py-8">
+                      <TrendingUp className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>Analytics data will appear here</p>
                     </div>
-                    <div className="text-right">
-                      <p className="font-medium">
-                        {transaction.type === "Sale" ? "-" : "+"}
-                        {transaction.quantity}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        ${transaction.amount.toFixed(2)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <Button
-                variant="outline"
-                className="w-full mt-4"
-                onClick={() => navigate("/transactions")}
-              >
-                View All Transactions
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Top Categories */}
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle className="text-xl">Top Selling Categories</CardTitle>
-              <CardDescription>
-                Best performing product categories this month
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {analyticsData?.topSellingCategories?.map((category, index) => (
-                  <div
-                    key={index}
-                    className="p-4 bg-muted/50 rounded-lg text-center"
-                  >
-                    <p className="font-semibold text-lg">{category.name}</p>
-                    <p className="text-2xl font-bold text-primary">
-                      {category.sales}
-                    </p>
-                    <p className="text-sm text-muted-foreground">units sold</p>
-                  </div>
-                )) || (
-                  <div className="col-span-3 text-center text-muted-foreground py-8">
-                    <TrendingUp className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>Analytics data will appear here</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </main>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
