@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge, CategoryBadge } from "@/components/ui/status-badges";
 import {
   Card,
   CardContent,
@@ -198,20 +199,6 @@ export default function Products() {
     if (stock === 0) return "Out of Stock";
     if (stock <= 10) return "Low Stock";
     return "Available";
-  };
-
-  const getStatusBadge = (status: string) => {
-    const variants = {
-      Available: "default",
-      "Low Stock": "secondary",
-      "Out of Stock": "destructive",
-    } as const;
-
-    return (
-      <Badge variant={variants[status as keyof typeof variants]}>
-        {status}
-      </Badge>
-    );
   };
 
   const filteredProducts = products.filter((product) => {
@@ -647,14 +634,16 @@ export default function Products() {
                           {product.productId}
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline">{product.category}</Badge>
+                          <CategoryBadge category={product.category} />
                         </TableCell>
                         <TableCell>{product.storeName}</TableCell>
                         <TableCell className="font-semibold">
                           {product.stock}
                         </TableCell>
                         <TableCell>{product.unit}</TableCell>
-                        <TableCell>{getStatusBadge(product.status)}</TableCell>
+                        <TableCell>
+                          <StatusBadge status={product.status} />
+                        </TableCell>
                         <TableCell>{product.lastUpdated}</TableCell>
                         <TableCell>
                           <DropdownMenu>
