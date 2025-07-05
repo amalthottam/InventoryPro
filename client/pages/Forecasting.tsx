@@ -144,13 +144,13 @@ export default function Forecasting() {
 
   const getUrgencyBadge = (daysUntilStockout: number) => {
     if (daysUntilStockout === 0) {
-      return <Badge variant="destructive">Out of Stock</Badge>;
+      return <StatusBadge status="Out of Stock" />;
     } else if (daysUntilStockout <= 3) {
-      return <Badge variant="destructive">Critical</Badge>;
+      return <StatusBadge status="Critical" />;
     } else if (daysUntilStockout <= 7) {
-      return <Badge variant="secondary">Warning</Badge>;
+      return <StatusBadge status="Warning" />;
     } else {
-      return <Badge variant="default">Normal</Badge>;
+      return <StatusBadge status="Normal" />;
     }
   };
 
