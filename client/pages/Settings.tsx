@@ -187,29 +187,6 @@ export default function Settings() {
     navigate("/login");
   };
 
-  const getStatusBadge = (status: string) => {
-    const variants = {
-      Active: "default",
-      Inactive: "secondary",
-      Pending: "outline",
-    } as const;
-
-    const icons = {
-      Active: CheckCircle,
-      Inactive: XCircle,
-      Pending: Clock,
-    };
-
-    const Icon = icons[status as keyof typeof icons];
-
-    return (
-      <Badge variant={variants[status as keyof typeof variants]}>
-        <Icon className="h-3 w-3 mr-1" />
-        {status}
-      </Badge>
-    );
-  };
-
   const handleAddUser = (e: React.FormEvent) => {
     e.preventDefault();
     const newUser: User = {
