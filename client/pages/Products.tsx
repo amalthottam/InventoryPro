@@ -246,7 +246,7 @@ export default function Products() {
       productId: "",
       category: "",
       stock: "",
-      brand: "",
+      storeName: "",
       unit: "",
     });
     setIsAddDialogOpen(false);
@@ -276,7 +276,7 @@ export default function Products() {
       productId: "",
       category: "",
       stock: "",
-      brand: "",
+      storeName: "",
       unit: "",
     });
     setIsEditDialogOpen(false);
@@ -444,7 +444,7 @@ export default function Products() {
                 productId: "",
                 category: "",
                 stock: "",
-                brand: "",
+                storeName: "",
                 unit: "",
               });
             } else {
@@ -454,7 +454,7 @@ export default function Products() {
                 productId: "",
                 category: "",
                 stock: "",
-                brand: "",
+                storeName: "",
                 unit: "",
               });
             }
