@@ -22,14 +22,14 @@ export default function Navigation({ onLogout }: NavigationProps) {
 
   const navigationItems = [
     {
-      name: "Dashboard",
-      href: "/dashboard",
-      icon: LayoutDashboard,
-    },
-    {
       name: "Products",
       href: "/products",
       icon: Package,
+    },
+    {
+      name: "Dashboard",
+      href: "/dashboard",
+      icon: LayoutDashboard,
     },
     {
       name: "Forecasting",
