@@ -8,6 +8,7 @@ import {
   LogOut,
   Menu,
   X,
+  TrendingUp,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -29,6 +30,11 @@ export default function Navigation({ onLogout }: NavigationProps) {
       name: "Products",
       href: "/products",
       icon: Package,
+    },
+    {
+      name: "Forecasting",
+      href: "/forecasting",
+      icon: TrendingUp,
     },
     {
       name: "Settings",
@@ -73,7 +79,7 @@ export default function Navigation({ onLogout }: NavigationProps) {
               <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
                 <Package className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold">InventoryPro</span>
+              <span className="text-xl font-bold">InvenCare</span>
             </div>
           </div>
 

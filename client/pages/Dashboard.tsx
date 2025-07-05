@@ -48,28 +48,28 @@ export default function Dashboard() {
   const stats = [
     {
       title: "Total Products",
-      value: "1,247",
-      change: "+12% from last month",
+      value: "1,347",
+      change: "+18% from last month",
       changeType: "positive" as const,
       icon: Package,
     },
     {
-      title: "Total Revenue",
-      value: "$54,239",
-      change: "+8% from last month",
+      title: "Daily Sales",
+      value: "$12,859",
+      change: "+12% from yesterday",
       changeType: "positive" as const,
       icon: DollarSign,
     },
     {
       title: "Low Stock Items",
-      value: "23",
-      change: "5 critical",
+      value: "8",
+      change: "3 critical",
       changeType: "negative" as const,
       icon: AlertTriangle,
     },
     {
-      title: "Growth Rate",
-      value: "+15.3%",
+      title: "Customer Satisfaction",
+      value: "4.8/5",
       change: "Above target",
       changeType: "positive" as const,
       icon: TrendingUp,
@@ -79,35 +79,35 @@ export default function Dashboard() {
   const recentProducts = [
     {
       id: 1,
-      name: "MacBook Pro 16-inch",
-      sku: "MBP-16-2023",
-      stock: 45,
+      name: "Organic Bananas",
+      sku: "ORG-BAN-001",
+      stock: 120,
       status: "In Stock",
-      category: "Electronics",
+      category: "Fruits & Vegetables",
     },
     {
       id: 2,
-      name: "iPhone 15 Pro",
-      sku: "IPH-15-PRO",
-      stock: 12,
+      name: "Whole Milk",
+      sku: "WHL-MLK-002",
+      stock: 8,
       status: "Low Stock",
-      category: "Electronics",
+      category: "Dairy",
     },
     {
       id: 3,
-      name: "Dell Monitor 27-inch",
-      sku: "DEL-MON-27",
+      name: "Brown Bread",
+      sku: "BRN-BRD-003",
       stock: 0,
       status: "Out of Stock",
-      category: "Electronics",
+      category: "Bakery",
     },
     {
       id: 4,
-      name: "Wireless Mouse",
-      sku: "WMS-2023",
-      stock: 156,
+      name: "Fresh Chicken Breast",
+      sku: "FCH-BRS-005",
+      stock: 15,
       status: "In Stock",
-      category: "Accessories",
+      category: "Meat & Poultry",
     },
   ];
 
@@ -126,7 +126,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
       <Navigation onLogout={handleLogout} />
 
       <div className="lg:pl-64">
@@ -135,9 +135,17 @@ export default function Dashboard() {
           <div className="mb-8">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="h-10 w-10 rounded-lg bg-gradient-to-r from-green-500 to-blue-600 flex items-center justify-center">
+                    <Package className="h-6 w-6 text-white" />
+                  </div>
+                  <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+                    InvenCare Dashboard
+                  </h1>
+                </div>
                 <p className="text-muted-foreground">
-                  Welcome back! Here's what's happening with your inventory.
+                  Welcome back! Here's what's happening with your supermarket
+                  inventory.
                 </p>
               </div>
               <div className="text-sm text-muted-foreground">

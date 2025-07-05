@@ -54,9 +54,9 @@ export default function Login() {
           <div className="mx-auto h-12 w-12 rounded-xl bg-primary flex items-center justify-center mb-4">
             <Package className="h-7 w-7 text-primary-foreground" />
           </div>
-          <h2 className="text-3xl font-bold tracking-tight">InventoryPro</h2>
+          <h2 className="text-3xl font-bold tracking-tight">InvenCare</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Sign in to your inventory management system
+            Sign in to your supermarket inventory system
           </p>
         </div>
 
@@ -132,7 +132,7 @@ export default function Login() {
 
         {/* Footer */}
         <div className="text-center text-xs text-muted-foreground">
-          <p>© 2024 InventoryPro. All rights reserved.</p>
+          <p>© 2024 InvenCare. All rights reserved.</p>
         </div>
       </div>
     </div>

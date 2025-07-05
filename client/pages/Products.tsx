@@ -42,6 +42,7 @@ import {
   Trash2,
   Filter,
   MoreHorizontal,
+  ShoppingCart,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -51,13 +52,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 interface Product {
-  id: number;
-  name: string;
-  sku: string;
+  id: string;
+  productName: string;
+  productId: string;
   category: string;
   stock: number;
-  price: number;
-  status: "In Stock" | "Low Stock" | "Out of Stock";
+  brand: string;
+  unit: string;
+  status: "Available" | "Low Stock" | "Out of Stock";
   lastUpdated: string;
 }
 
@@ -70,11 +72,12 @@ export default function Products() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [formData, setFormData] = useState({
-    name: "",
-    sku: "",
+    productName: "",
+    productId: "",
     category: "",
     stock: "",
-    price: "",
+    brand: "",
+    unit: "",
   });
 
   useEffect(() => {
@@ -85,57 +88,95 @@ export default function Products() {
       return;
     }
 
-    // Load sample products
+    // Load sample grocery products - In real app, this would be AWS Lambda API call
     setProducts([
       {
-        id: 1,
-        name: "MacBook Pro 16-inch",
-        sku: "MBP-16-2023",
-        category: "Electronics",
-        stock: 45,
-        price: 2499.99,
-        status: "In Stock",
+        id: "1",
+        productName: "Organic Bananas",
+        productId: "ORG-BAN-001",
+        category: "Fruits & Vegetables",
+        stock: 120,
+        brand: "Fresh Farm",
+        unit: "kg",
+        status: "Available",
         lastUpdated: "2024-01-15",
       },
       {
-        id: 2,
-        name: "iPhone 15 Pro",
-        sku: "IPH-15-PRO",
-        category: "Electronics",
-        stock: 12,
-        price: 999.99,
+        id: "2",
+        productName: "Whole Milk",
+        productId: "WHL-MLK-002",
+        category: "Dairy",
+        stock: 8,
+        brand: "Pure Dairy",
+        unit: "liter",
         status: "Low Stock",
         lastUpdated: "2024-01-14",
       },
       {
-        id: 3,
-        name: "Dell Monitor 27-inch",
-        sku: "DEL-MON-27",
-        category: "Electronics",
+        id: "3",
+        productName: "Brown Bread",
+        productId: "BRN-BRD-003",
+        category: "Bakery",
         stock: 0,
-        price: 299.99,
+        brand: "Baker's Best",
+        unit: "loaf",
         status: "Out of Stock",
         lastUpdated: "2024-01-13",
       },
       {
-        id: 4,
-        name: "Wireless Mouse",
-        sku: "WMS-2023",
-        category: "Accessories",
-        stock: 156,
-        price: 49.99,
-        status: "In Stock",
+        id: "4",
+        productName: "Jasmine Rice",
+        productId: "JAS-RIC-004",
+        category: "Grains & Cereals",
+        stock: 45,
+        brand: "Golden Harvest",
+        unit: "kg",
+        status: "Available",
         lastUpdated: "2024-01-15",
       },
       {
-        id: 5,
-        name: "USB-C Cable",
-        sku: "USB-C-2023",
-        category: "Accessories",
-        stock: 8,
-        price: 19.99,
+        id: "5",
+        productName: "Fresh Chicken Breast",
+        productId: "FCH-BRS-005",
+        category: "Meat & Poultry",
+        stock: 15,
+        brand: "Farm Fresh",
+        unit: "kg",
+        status: "Available",
+        lastUpdated: "2024-01-15",
+      },
+      {
+        id: "6",
+        productName: "Greek Yogurt",
+        productId: "GRK-YOG-006",
+        category: "Dairy",
+        stock: 6,
+        brand: "Mediterranean",
+        unit: "cup",
         status: "Low Stock",
-        lastUpdated: "2024-01-12",
+        lastUpdated: "2024-01-14",
+      },
+      {
+        id: "7",
+        productName: "Extra Virgin Olive Oil",
+        productId: "EVO-OIL-007",
+        category: "Cooking Essentials",
+        stock: 32,
+        brand: "Olive Grove",
+        unit: "bottle",
+        status: "Available",
+        lastUpdated: "2024-01-15",
+      },
+      {
+        id: "8",
+        productName: "Fresh Salmon Fillet",
+        productId: "FSH-SAL-008",
+        category: "Seafood",
+        stock: 12,
+        brand: "Ocean Fresh",
+        unit: "kg",
+        status: "Available",
+        lastUpdated: "2024-01-15",
       },
     ]);
   }, [navigate]);
@@ -148,12 +189,12 @@ export default function Products() {
   const getStatus = (stock: number): Product["status"] => {
     if (stock === 0) return "Out of Stock";
     if (stock <= 10) return "Low Stock";
-    return "In Stock";
+    return "Available";
   };
 
   const getStatusBadge = (status: string) => {
     const variants = {
-      "In Stock": "default",
+      Available: "default",
       "Low Stock": "secondary",
       "Out of Stock": "destructive",
     } as const;
@@ -167,8 +208,9 @@ export default function Products() {
 
   const filteredProducts = products.filter((product) => {
     const matchesSearch =
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.sku.toLowerCase().includes(searchTerm.toLowerCase());
+      product.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.productId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.brand.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory =
       categoryFilter === "all" || product.category === categoryFilter;
     return matchesSearch && matchesCategory;
@@ -179,18 +221,26 @@ export default function Products() {
   const handleAddProduct = (e: React.FormEvent) => {
     e.preventDefault();
     const newProduct: Product = {
-      id: Math.max(...products.map((p) => p.id)) + 1,
-      name: formData.name,
-      sku: formData.sku,
+      id: Math.random().toString(36).substr(2, 9),
+      productName: formData.productName,
+      productId: formData.productId,
       category: formData.category,
       stock: parseInt(formData.stock),
-      price: parseFloat(formData.price),
+      brand: formData.brand,
+      unit: formData.unit,
       status: getStatus(parseInt(formData.stock)),
       lastUpdated: new Date().toISOString().split("T")[0],
     };
 
     setProducts([...products, newProduct]);
-    setFormData({ name: "", sku: "", category: "", stock: "", price: "" });
+    setFormData({
+      productName: "",
+      productId: "",
+      category: "",
+      stock: "",
+      brand: "",
+      unit: "",
+    });
     setIsAddDialogOpen(false);
   };
 
@@ -200,11 +250,12 @@ export default function Products() {
 
     const updatedProduct: Product = {
       ...editingProduct,
-      name: formData.name,
-      sku: formData.sku,
+      productName: formData.productName,
+      productId: formData.productId,
       category: formData.category,
       stock: parseInt(formData.stock),
-      price: parseFloat(formData.price),
+      brand: formData.brand,
+      unit: formData.unit,
       status: getStatus(parseInt(formData.stock)),
       lastUpdated: new Date().toISOString().split("T")[0],
     };
@@ -212,23 +263,31 @@ export default function Products() {
     setProducts(
       products.map((p) => (p.id === editingProduct.id ? updatedProduct : p)),
     );
-    setFormData({ name: "", sku: "", category: "", stock: "", price: "" });
+    setFormData({
+      productName: "",
+      productId: "",
+      category: "",
+      stock: "",
+      brand: "",
+      unit: "",
+    });
     setIsEditDialogOpen(false);
     setEditingProduct(null);
   };
 
-  const handleDeleteProduct = (id: number) => {
+  const handleDeleteProduct = (id: string) => {
     setProducts(products.filter((p) => p.id !== id));
   };
 
   const openEditDialog = (product: Product) => {
     setEditingProduct(product);
     setFormData({
-      name: product.name,
-      sku: product.sku,
+      productName: product.productName,
+      productId: product.productId,
       category: product.category,
       stock: product.stock.toString(),
-      price: product.price.toString(),
+      brand: product.brand,
+      unit: product.unit,
     });
     setIsEditDialogOpen(true);
   };
@@ -243,20 +302,26 @@ export default function Products() {
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="name">Product Name</Label>
+          <Label htmlFor="productName">Product Name</Label>
           <Input
-            id="name"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            id="productName"
+            value={formData.productName}
+            onChange={(e) =>
+              setFormData({ ...formData, productName: e.target.value })
+            }
+            placeholder="e.g., Organic Bananas"
             required
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="sku">SKU</Label>
+          <Label htmlFor="productId">Product ID</Label>
           <Input
-            id="sku"
-            value={formData.sku}
-            onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+            id="productId"
+            value={formData.productId}
+            onChange={(e) =>
+              setFormData({ ...formData, productId: e.target.value })
+            }
+            placeholder="e.g., ORG-BAN-001"
             required
           />
         </div>
@@ -274,13 +339,36 @@ export default function Products() {
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Electronics">Electronics</SelectItem>
-              <SelectItem value="Accessories">Accessories</SelectItem>
-              <SelectItem value="Furniture">Furniture</SelectItem>
-              <SelectItem value="Clothing">Clothing</SelectItem>
+              <SelectItem value="Fruits & Vegetables">
+                Fruits & Vegetables
+              </SelectItem>
+              <SelectItem value="Dairy">Dairy</SelectItem>
+              <SelectItem value="Bakery">Bakery</SelectItem>
+              <SelectItem value="Meat & Poultry">Meat & Poultry</SelectItem>
+              <SelectItem value="Seafood">Seafood</SelectItem>
+              <SelectItem value="Grains & Cereals">Grains & Cereals</SelectItem>
+              <SelectItem value="Cooking Essentials">
+                Cooking Essentials
+              </SelectItem>
+              <SelectItem value="Beverages">Beverages</SelectItem>
+              <SelectItem value="Snacks">Snacks</SelectItem>
             </SelectContent>
           </Select>
         </div>
+        <div className="space-y-2">
+          <Label htmlFor="brand">Brand</Label>
+          <Input
+            id="brand"
+            value={formData.brand}
+            onChange={(e) =>
+              setFormData({ ...formData, brand: e.target.value })
+            }
+            placeholder="e.g., Fresh Farm"
+            required
+          />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="stock">Stock Quantity</Label>
           <Input
@@ -293,17 +381,28 @@ export default function Products() {
             required
           />
         </div>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="price">Price ($)</Label>
-        <Input
-          id="price"
-          type="number"
-          step="0.01"
-          value={formData.price}
-          onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-          required
-        />
+        <div className="space-y-2">
+          <Label htmlFor="unit">Unit</Label>
+          <Select
+            value={formData.unit}
+            onValueChange={(value) => setFormData({ ...formData, unit: value })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select unit" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="kg">kg</SelectItem>
+              <SelectItem value="liter">liter</SelectItem>
+              <SelectItem value="piece">piece</SelectItem>
+              <SelectItem value="bottle">bottle</SelectItem>
+              <SelectItem value="can">can</SelectItem>
+              <SelectItem value="pack">pack</SelectItem>
+              <SelectItem value="box">box</SelectItem>
+              <SelectItem value="loaf">loaf</SelectItem>
+              <SelectItem value="cup">cup</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       <div className="flex justify-end space-x-2">
         <Button
@@ -313,11 +412,12 @@ export default function Products() {
             setIsAddDialogOpen(false);
             setIsEditDialogOpen(false);
             setFormData({
-              name: "",
-              sku: "",
+              productName: "",
+              productId: "",
               category: "",
               stock: "",
-              price: "",
+              brand: "",
+              unit: "",
             });
           }}
         >
@@ -331,7 +431,7 @@ export default function Products() {
   );
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <Navigation onLogout={handleLogout} />
 
       <div className="lg:pl-64">
@@ -339,23 +439,30 @@ export default function Products() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Products</h1>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="h-10 w-10 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+                  <ShoppingCart className="h-6 w-6 text-white" />
+                </div>
+                <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Grocery Products
+                </h1>
+              </div>
               <p className="text-muted-foreground">
-                Manage your inventory and product catalog
+                Manage your supermarket inventory and product catalog
               </p>
             </div>
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
-                <Button>
+                <Button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
                   <Plus className="h-4 w-4 mr-2" />
                   Add Product
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
+              <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
                   <DialogTitle>Add New Product</DialogTitle>
                   <DialogDescription>
-                    Enter the details for the new product.
+                    Enter the details for the new grocery item.
                   </DialogDescription>
                 </DialogHeader>
                 <ProductForm onSubmit={handleAddProduct} />
@@ -363,10 +470,58 @@ export default function Products() {
             </Dialog>
           </div>
 
+          {/* Stats Cards */}
+          <div className="grid gap-4 md:grid-cols-4 mb-6">
+            <Card className="bg-gradient-to-r from-green-500 to-emerald-600 text-white border-0">
+              <CardContent className="p-6">
+                <div className="text-2xl font-bold">
+                  {
+                    filteredProducts.filter((p) => p.status === "Available")
+                      .length
+                  }
+                </div>
+                <div className="text-green-100">Available Products</div>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-r from-yellow-500 to-orange-600 text-white border-0">
+              <CardContent className="p-6">
+                <div className="text-2xl font-bold">
+                  {
+                    filteredProducts.filter((p) => p.status === "Low Stock")
+                      .length
+                  }
+                </div>
+                <div className="text-yellow-100">Low Stock Items</div>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-r from-red-500 to-pink-600 text-white border-0">
+              <CardContent className="p-6">
+                <div className="text-2xl font-bold">
+                  {
+                    filteredProducts.filter((p) => p.status === "Out of Stock")
+                      .length
+                  }
+                </div>
+                <div className="text-red-100">Out of Stock</div>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0">
+              <CardContent className="p-6">
+                <div className="text-2xl font-bold">
+                  {filteredProducts.length}
+                </div>
+                <div className="text-blue-100">Total Products</div>
+              </CardContent>
+            </Card>
+          </div>
+
           {/* Filters */}
-          <Card className="mb-6">
+          <Card className="mb-6 border-0 shadow-lg">
             <CardHeader>
-              <CardTitle className="text-lg">Filters</CardTitle>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Filter className="h-5 w-5" />
+                Filters
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex flex-col sm:flex-row gap-4">
@@ -374,7 +529,7 @@ export default function Products() {
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Search products..."
+                      placeholder="Search products, brands, or IDs..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-10"
@@ -404,39 +559,56 @@ export default function Products() {
           </Card>
 
           {/* Products Table */}
-          <Card>
+          <Card className="border-0 shadow-lg">
             <CardHeader>
               <CardTitle>
-                Product Inventory ({filteredProducts.length})
+                Product Inventory ({filteredProducts.length} items)
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="rounded-md border">
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>Product Name</TableHead>
-                      <TableHead>SKU</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Stock</TableHead>
-                      <TableHead>Price</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Last Updated</TableHead>
-                      <TableHead className="w-[70px]">Actions</TableHead>
+                    <TableRow className="bg-gradient-to-r from-slate-50 to-blue-50">
+                      <TableHead className="font-semibold">
+                        Product Name
+                      </TableHead>
+                      <TableHead className="font-semibold">
+                        Product ID
+                      </TableHead>
+                      <TableHead className="font-semibold">Category</TableHead>
+                      <TableHead className="font-semibold">Brand</TableHead>
+                      <TableHead className="font-semibold">Stock</TableHead>
+                      <TableHead className="font-semibold">Unit</TableHead>
+                      <TableHead className="font-semibold">Status</TableHead>
+                      <TableHead className="font-semibold">
+                        Last Updated
+                      </TableHead>
+                      <TableHead className="w-[70px] font-semibold">
+                        Actions
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredProducts.map((product) => (
-                      <TableRow key={product.id}>
+                      <TableRow
+                        key={product.id}
+                        className="hover:bg-slate-50/50"
+                      >
                         <TableCell className="font-medium">
-                          {product.name}
+                          {product.productName}
                         </TableCell>
-                        <TableCell className="font-mono text-sm">
-                          {product.sku}
+                        <TableCell className="font-mono text-sm text-blue-600">
+                          {product.productId}
                         </TableCell>
-                        <TableCell>{product.category}</TableCell>
-                        <TableCell>{product.stock}</TableCell>
-                        <TableCell>${product.price.toFixed(2)}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{product.category}</Badge>
+                        </TableCell>
+                        <TableCell>{product.brand}</TableCell>
+                        <TableCell className="font-semibold">
+                          {product.stock}
+                        </TableCell>
+                        <TableCell>{product.unit}</TableCell>
                         <TableCell>{getStatusBadge(product.status)}</TableCell>
                         <TableCell>{product.lastUpdated}</TableCell>
                         <TableCell>
@@ -473,7 +645,7 @@ export default function Products() {
 
           {/* Edit Dialog */}
           <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
                 <DialogTitle>Edit Product</DialogTitle>
                 <DialogDescription>
