@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badges";
 import {
   Package,
   TrendingUp,
@@ -194,7 +195,7 @@ export default function Dashboard() {
                         </div>
                       </div>
                       <div className="text-right">
-                        {getStatusBadge(product.status)}
+                        <StatusBadge status={product.status} />
                       </div>
                     </div>
                   ))}
