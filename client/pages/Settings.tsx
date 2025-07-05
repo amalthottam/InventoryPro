@@ -511,11 +511,15 @@ export default function Settings() {
                                 </div>
                               </div>
                             </TableCell>
-                            <TableCell>{getRoleBadge(user.role)}</TableCell>
                             <TableCell>
-                              <Badge variant="outline">{user.department}</Badge>
+                              <RoleBadge role={user.role} />
                             </TableCell>
-                            <TableCell>{getStatusBadge(user.status)}</TableCell>
+                            <TableCell>
+                              <DepartmentBadge department={user.department} />
+                            </TableCell>
+                            <TableCell>
+                              <StatusBadge status={user.status} />
+                            </TableCell>
                             <TableCell className="font-mono text-sm">
                               {user.lastLogin}
                             </TableCell>
