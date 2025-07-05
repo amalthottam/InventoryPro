@@ -71,7 +71,15 @@ export default function Products() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [formData, setFormData] = useState({
+  const [addFormData, setAddFormData] = useState({
+    productName: "",
+    productId: "",
+    category: "",
+    stock: "",
+    brand: "",
+    unit: "",
+  });
+  const [editFormData, setEditFormData] = useState({
     productName: "",
     productId: "",
     category: "",
@@ -281,7 +289,7 @@ export default function Products() {
 
   const openEditDialog = (product: Product) => {
     setEditingProduct(product);
-    setFormData({
+    setEditFormData({
       productName: product.productName,
       productId: product.productId,
       category: product.category,
@@ -295,9 +303,29 @@ export default function Products() {
   const ProductForm = ({
     onSubmit,
     isEdit = false,
+    formData,
+    setFormData,
   }: {
     onSubmit: (e: React.FormEvent) => void;
     isEdit?: boolean;
+    formData: {
+      productName: string;
+      productId: string;
+      category: string;
+      stock: string;
+      brand: string;
+      unit: string;
+    };
+    setFormData: React.Dispatch<
+      React.SetStateAction<{
+        productName: string;
+        productId: string;
+        category: string;
+        stock: string;
+        brand: string;
+        unit: string;
+      }>
+    >;
   }) => (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
@@ -409,16 +437,27 @@ export default function Products() {
           type="button"
           variant="outline"
           onClick={() => {
-            setIsAddDialogOpen(false);
-            setIsEditDialogOpen(false);
-            setFormData({
-              productName: "",
-              productId: "",
-              category: "",
-              stock: "",
-              brand: "",
-              unit: "",
-            });
+            if (isEdit) {
+              setIsEditDialogOpen(false);
+              setEditFormData({
+                productName: "",
+                productId: "",
+                category: "",
+                stock: "",
+                brand: "",
+                unit: "",
+              });
+            } else {
+              setIsAddDialogOpen(false);
+              setAddFormData({
+                productName: "",
+                productId: "",
+                category: "",
+                stock: "",
+                brand: "",
+                unit: "",
+              });
+            }
           }}
         >
           Cancel
@@ -465,7 +504,11 @@ export default function Products() {
                     Enter the details for the new grocery item.
                   </DialogDescription>
                 </DialogHeader>
-                <ProductForm onSubmit={handleAddProduct} />
+                <ProductForm
+                  onSubmit={handleAddProduct}
+                  formData={addFormData}
+                  setFormData={setAddFormData}
+                />
               </DialogContent>
             </Dialog>
           </div>
@@ -652,7 +695,12 @@ export default function Products() {
                   Update the product details.
                 </DialogDescription>
               </DialogHeader>
-              <ProductForm onSubmit={handleEditProduct} isEdit />
+              <ProductForm
+                onSubmit={handleEditProduct}
+                isEdit
+                formData={editFormData}
+                setFormData={setEditFormData}
+              />
             </DialogContent>
           </Dialog>
         </main>
