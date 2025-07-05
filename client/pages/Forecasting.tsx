@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge, CategoryBadge } from "@/components/ui/status-badges";
 import {
   Select,
   SelectContent,
