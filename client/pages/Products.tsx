@@ -313,7 +313,7 @@ export default function Products() {
       productId: string;
       category: string;
       stock: string;
-      brand: string;
+      storeName: string;
       unit: string;
     };
     setFormData: React.Dispatch<
@@ -322,7 +322,7 @@ export default function Products() {
         productId: string;
         category: string;
         stock: string;
-        brand: string;
+        storeName: string;
         unit: string;
       }>
     >;
