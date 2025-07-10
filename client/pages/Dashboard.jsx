@@ -19,11 +19,81 @@ import {
   DollarSign,
   Plus,
   Eye,
+  MapPin,
+  Building,
 } from "lucide-react";
 
 // AWS Cognito and Lambda Integration
 // import { getCurrentUser, signOut } from 'aws-amplify/auth';
 // import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
+
+// Mock store data
+const stores = [
+  { id: "all", name: "All Stores", location: "Combined View" },
+  { id: "store_001", name: "Downtown Store", location: "123 Main St" },
+  { id: "store_002", name: "Mall Location", location: "456 Shopping Center" },
+  { id: "store_003", name: "Uptown Branch", location: "789 North Ave" },
+  { id: "store_004", name: "Westside Market", location: "321 West Blvd" },
+];
+
+// Mock analytics data by store
+const storeAnalytics = {
+  all: {
+    totalProducts: 3250,
+    lowStockItems: 47,
+    revenueThisMonth: 125430.5,
+    inventoryTurnover: 4.2,
+    topSellingCategories: [
+      { name: "Beverages", sales: 2150 },
+      { name: "Snacks", sales: 1820 },
+      { name: "Dairy", sales: 1650 },
+    ],
+  },
+  store_001: {
+    totalProducts: 850,
+    lowStockItems: 12,
+    revenueThisMonth: 32150.25,
+    inventoryTurnover: 4.5,
+    topSellingCategories: [
+      { name: "Beverages", sales: 580 },
+      { name: "Dairy", sales: 420 },
+      { name: "Snacks", sales: 385 },
+    ],
+  },
+  store_002: {
+    totalProducts: 920,
+    lowStockItems: 15,
+    revenueThisMonth: 38920.75,
+    inventoryTurnover: 4.1,
+    topSellingCategories: [
+      { name: "Snacks", sales: 680 },
+      { name: "Beverages", sales: 610 },
+      { name: "Dairy", sales: 450 },
+    ],
+  },
+  store_003: {
+    totalProducts: 780,
+    lowStockItems: 8,
+    revenueThisMonth: 28790.0,
+    inventoryTurnover: 3.9,
+    topSellingCategories: [
+      { name: "Dairy", sales: 520 },
+      { name: "Beverages", sales: 480 },
+      { name: "Bakery", sales: 380 },
+    ],
+  },
+  store_004: {
+    totalProducts: 700,
+    lowStockItems: 12,
+    revenueThisMonth: 25569.5,
+    inventoryTurnover: 4.3,
+    topSellingCategories: [
+      { name: "Beverages", sales: 480 },
+      { name: "Snacks", sales: 375 },
+      { name: "Meat & Poultry", sales: 320 },
+    ],
+  },
+};
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -31,6 +101,7 @@ export default function Dashboard() {
   const [analyticsData, setAnalyticsData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [selectedStore, setSelectedStore] = useState("all");
 
   useEffect(() => {
     checkAuthentication();
@@ -43,6 +114,13 @@ export default function Dashboard() {
 
     return () => clearInterval(timer);
   }, []);
+
+  // Refetch data when store selection changes
+  useEffect(() => {
+    if (!isLoading) {
+      fetchDashboardData();
+    }
+  }, [selectedStore]);
 
   const checkAuthentication = async () => {
     try {
@@ -87,7 +165,7 @@ export default function Dashboard() {
       //   InvocationType: 'RequestResponse',
       //   Payload: JSON.stringify({
       //     action: 'getDashboardAnalytics',
-      //     storeId: user?.attributes?.['custom:store_id'] || 'default',
+      //     storeId: selectedStore === 'all' ? null : selectedStore,
       //     timeframe: '30days'
       //   })
       // };
@@ -99,10 +177,8 @@ export default function Dashboard() {
       // );
       // setAnalyticsData(responsePayload);
 
-      // Demo API call (remove when implementing Lambda)
-      const response = await fetch("/api/demo?action=getDashboardAnalytics");
-      const data = await response.json();
-      setAnalyticsData(data.analytics);
+      // Use mock data based on selected store
+      setAnalyticsData(storeAnalytics[selectedStore]);
     } catch (error) {
       console.error("Failed to fetch dashboard data:", error);
       // Set fallback data
@@ -181,38 +257,193 @@ export default function Dashboard() {
     },
   ];
 
-  const lowStockItems = [
-    { name: "Organic Bananas", current: 5, minimum: 10, category: "Produce" },
-    { name: "Whole Milk Gallon", current: 3, minimum: 5, category: "Dairy" },
-    { name: "Coca Cola 12pk", current: 2, minimum: 5, category: "Beverages" },
-  ];
+  // Store-specific low stock data
+  const storeLowStockData = {
+    all: [
+      {
+        name: "Organic Bananas",
+        current: 15,
+        minimum: 30,
+        category: "Produce",
+        store: "Downtown",
+      },
+      {
+        name: "Whole Milk Gallon",
+        current: 8,
+        minimum: 20,
+        category: "Dairy",
+        store: "Mall",
+      },
+      {
+        name: "Coca Cola 12pk",
+        current: 12,
+        minimum: 25,
+        category: "Beverages",
+        store: "Uptown",
+      },
+      {
+        name: "Brown Bread",
+        current: 6,
+        minimum: 15,
+        category: "Bakery",
+        store: "Westside",
+      },
+    ],
+    store_001: [
+      { name: "Organic Bananas", current: 5, minimum: 10, category: "Produce" },
+      { name: "Fresh Apples", current: 3, minimum: 8, category: "Produce" },
+    ],
+    store_002: [
+      { name: "Whole Milk Gallon", current: 2, minimum: 5, category: "Dairy" },
+      { name: "Potato Chips", current: 4, minimum: 10, category: "Snacks" },
+      { name: "Energy Drinks", current: 3, minimum: 8, category: "Beverages" },
+    ],
+    store_003: [
+      { name: "Greek Yogurt", current: 4, minimum: 12, category: "Dairy" },
+    ],
+    store_004: [
+      {
+        name: "Ground Beef",
+        current: 2,
+        minimum: 8,
+        category: "Meat & Poultry",
+      },
+      { name: "Sandwich Bread", current: 3, minimum: 10, category: "Bakery" },
+    ],
+  };
 
-  const recentTransactions = [
-    {
-      id: "TXN-001",
-      type: "Sale",
-      product: "Lay's Potato Chips",
-      quantity: 15,
-      amount: 74.85,
-      time: "2 hours ago",
-    },
-    {
-      id: "TXN-002",
-      type: "Restock",
-      product: "Wonder Bread",
-      quantity: 24,
-      amount: 59.76,
-      time: "4 hours ago",
-    },
-    {
-      id: "TXN-003",
-      type: "Sale",
-      product: "Organic Bananas",
-      quantity: 8,
-      amount: 15.92,
-      time: "6 hours ago",
-    },
-  ];
+  const lowStockItems = storeLowStockData[selectedStore] || [];
+
+  // Store-specific recent transactions
+  const storeTransactions = {
+    all: [
+      {
+        id: "TXN-001",
+        type: "Sale",
+        product: "Lay's Potato Chips",
+        quantity: 45,
+        amount: 224.55,
+        time: "1 hour ago",
+        store: "All Stores",
+      },
+      {
+        id: "TXN-002",
+        type: "Restock",
+        product: "Wonder Bread",
+        quantity: 96,
+        amount: 239.04,
+        time: "3 hours ago",
+        store: "Multiple",
+      },
+      {
+        id: "TXN-003",
+        type: "Sale",
+        product: "Organic Bananas",
+        quantity: 32,
+        amount: 63.68,
+        time: "5 hours ago",
+        store: "All Stores",
+      },
+    ],
+    store_001: [
+      {
+        id: "TXN-101",
+        type: "Sale",
+        product: "Coffee Beans",
+        quantity: 5,
+        amount: 49.95,
+        time: "30 min ago",
+      },
+      {
+        id: "TXN-102",
+        type: "Sale",
+        product: "Fresh Milk",
+        quantity: 8,
+        amount: 31.92,
+        time: "1 hour ago",
+      },
+      {
+        id: "TXN-103",
+        type: "Restock",
+        product: "Organic Bananas",
+        quantity: 20,
+        amount: 39.8,
+        time: "3 hours ago",
+      },
+    ],
+    store_002: [
+      {
+        id: "TXN-201",
+        type: "Sale",
+        product: "Energy Drinks",
+        quantity: 12,
+        amount: 35.88,
+        time: "45 min ago",
+      },
+      {
+        id: "TXN-202",
+        type: "Sale",
+        product: "Potato Chips",
+        quantity: 6,
+        amount: 17.94,
+        time: "2 hours ago",
+      },
+      {
+        id: "TXN-203",
+        type: "Restock",
+        product: "Yogurt Cups",
+        quantity: 24,
+        amount: 71.76,
+        time: "4 hours ago",
+      },
+    ],
+    store_003: [
+      {
+        id: "TXN-301",
+        type: "Sale",
+        product: "Greek Yogurt",
+        quantity: 8,
+        amount: 31.92,
+        time: "1 hour ago",
+      },
+      {
+        id: "TXN-302",
+        type: "Sale",
+        product: "Artisan Bread",
+        quantity: 3,
+        amount: 14.97,
+        time: "2 hours ago",
+      },
+    ],
+    store_004: [
+      {
+        id: "TXN-401",
+        type: "Sale",
+        product: "Ground Beef",
+        quantity: 4,
+        amount: 35.96,
+        time: "20 min ago",
+      },
+      {
+        id: "TXN-402",
+        type: "Restock",
+        product: "Chicken Breast",
+        quantity: 15,
+        amount: 89.85,
+        time: "1 hour ago",
+      },
+      {
+        id: "TXN-403",
+        type: "Sale",
+        product: "Sandwich Bread",
+        quantity: 7,
+        amount: 17.43,
+        time: "3 hours ago",
+      },
+    ],
+  };
+
+  const recentTransactions = storeTransactions[selectedStore] || [];
 
   return (
     <div className="min-h-screen bg-background">
@@ -288,6 +519,11 @@ export default function Dashboard() {
                           <p className="font-medium">{item.name}</p>
                           <p className="text-sm text-muted-foreground">
                             {item.category}
+                            {selectedStore === "all" && item.store && (
+                              <span className="ml-2 text-blue-600">
+                                • {item.store} Store
+                              </span>
+                            )}
                           </p>
                         </div>
                         <div className="text-right">
@@ -335,6 +571,11 @@ export default function Dashboard() {
                         <p className="font-medium">{transaction.product}</p>
                         <p className="text-sm text-muted-foreground">
                           {transaction.type} • {transaction.time}
+                          {selectedStore === "all" && transaction.store && (
+                            <span className="ml-2 text-blue-600">
+                              • {transaction.store}
+                            </span>
+                          )}
                         </p>
                       </div>
                       <div className="text-right">
