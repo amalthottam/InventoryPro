@@ -124,8 +124,28 @@ export default function Dashboard() {
 
   const checkAuthentication = async () => {
     try {
-      // AWS Cognito Authentication Check
+      // AWS Cognito Authentication Check with Store-Based Access Control
       // const currentUser = await getCurrentUser();
+      // const userAttributes = await fetchUserAttributes();
+      //
+      // // Check user's store access permissions
+      // const userStoreAccess = userAttributes['custom:store_access']; // e.g., "all" or "store_001,store_002"
+      // const userRole = userAttributes['custom:role']; // e.g., "admin", "manager", "employee"
+      // const userPrimaryStore = userAttributes['custom:primary_store']; // User's main store
+      //
+      // // Set default store based on user permissions
+      // let defaultStore = "all";
+      // if (userRole === "employee" && userPrimaryStore) {
+      //   // Employees typically see only their assigned store
+      //   defaultStore = userPrimaryStore;
+      // } else if (userRole === "manager" && userStoreAccess !== "all") {
+      //   // Managers might have access to specific stores
+      //   const accessibleStores = userStoreAccess.split(',');
+      //   defaultStore = accessibleStores.length === 1 ? accessibleStores[0] : "all";
+      // }
+      // // Admins get "all" by default
+      //
+      // setSelectedStore(defaultStore);
       // setUser(currentUser);
 
       // Demo authentication check (remove when implementing Cognito)
@@ -135,14 +155,15 @@ export default function Dashboard() {
         return;
       }
 
-      // Demo user data (remove when implementing Cognito)
+      // Demo user data with store access control (remove when implementing Cognito)
       setUser({
         username: "demo@invencare.com",
         attributes: {
           given_name: "Demo",
           family_name: "User",
-          "custom:role": "manager",
-          "custom:store_id": "store_001",
+          "custom:role": "manager", // Role determines default store access
+          "custom:primary_store": "store_001", // User's main store assignment
+          "custom:store_access": "all", // Stores user can access: "all" or "store_001,store_002"
         },
       });
     } catch (error) {
@@ -155,7 +176,7 @@ export default function Dashboard() {
     try {
       setIsLoading(true);
 
-      // AWS Lambda Analytics Function Invocation
+      // AWS Lambda Analytics Function Invocation with Store Filtering
       // const lambdaClient = new LambdaClient({
       //   region: process.env.REACT_APP_AWS_REGION || 'us-east-1'
       // });
@@ -165,8 +186,13 @@ export default function Dashboard() {
       //   InvocationType: 'RequestResponse',
       //   Payload: JSON.stringify({
       //     action: 'getDashboardAnalytics',
-      //     storeId: selectedStore === 'all' ? null : selectedStore,
-      //     timeframe: '30days'
+      //     storeId: selectedStore === 'all' ? null : selectedStore, // Filter by specific store or aggregate all
+      //     storeName: selectedStore === 'all' ? null : stores.find(s => s.id === selectedStore)?.name,
+      //     includeStoreBreakdown: selectedStore === 'all', // Include per-store breakdown when viewing all stores
+      //     timeframe: '30days',
+      //     metrics: ['totalProducts', 'revenue', 'lowStockItems', 'inventoryTurnover', 'topCategories'],
+      //     includeTransactions: true, // Include recent transactions for the selected store(s)
+      //     includeLowStockDetails: true // Include detailed low stock items with store context
       //   })
       // };
       //
@@ -175,7 +201,18 @@ export default function Dashboard() {
       // const responsePayload = JSON.parse(
       //   new TextDecoder().decode(response.Payload)
       // );
-      // setAnalyticsData(responsePayload);
+      //
+      // // Handle store-specific vs aggregated data
+      // if (selectedStore === 'all') {
+      //   // For "all stores" view, responsePayload should contain:
+      //   // - aggregatedMetrics: combined totals across all stores
+      //   // - storeBreakdown: individual metrics per store
+      //   // - combinedTransactions: recent transactions from all stores with store identifiers
+      //   setAnalyticsData(responsePayload.aggregatedMetrics);
+      // } else {
+      //   // For individual store view, responsePayload contains store-specific data
+      //   setAnalyticsData(responsePayload);
+      // }
 
       // Use mock data based on selected store
       setAnalyticsData(storeAnalytics[selectedStore]);
