@@ -9,6 +9,7 @@ import {
   Menu,
   X,
   TrendingUp,
+  Receipt,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -18,14 +19,19 @@ export default function Navigation({ onLogout }) {
 
   const navigationItems = [
     {
+      name: "Dashboard",
+      href: "/dashboard",
+      icon: LayoutDashboard,
+    },
+    {
       name: "Products",
       href: "/products",
       icon: Package,
     },
     {
-      name: "Dashboard",
-      href: "/dashboard",
-      icon: LayoutDashboard,
+      name: "Transactions",
+      href: "/transactions",
+      icon: Receipt,
     },
     {
       name: "Forecasting",

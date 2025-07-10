@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import Products from "./pages/Products";
 import Forecasting from "./pages/Forecasting";
 import Settings from "./pages/Settings";
+import Transactions from "./pages/Transactions";
 import NotFound from "./pages/NotFound";
 
 // AWS Cognito Integration
@@ -78,6 +79,7 @@ const App = () => {
           <Route path="/products" element={<Products />} />
           <Route path="/forecasting" element={<Forecasting />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/transactions" element={<Transactions />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
