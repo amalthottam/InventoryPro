@@ -184,6 +184,23 @@ export function createServer() {
 // export const handler = serverless(createServer());
 
 // RDS Database Schema (run this SQL to create tables)
+// CREATE TABLE stores (
+//   id VARCHAR(50) PRIMARY KEY,
+//   name VARCHAR(255) NOT NULL,
+//   address TEXT,
+//   city VARCHAR(100),
+//   state VARCHAR(100),
+//   zip_code VARCHAR(20),
+//   phone VARCHAR(20),
+//   manager_id VARCHAR(255), -- Cognito user ID
+//   status ENUM('active', 'inactive', 'maintenance') DEFAULT 'active',
+//   timezone VARCHAR(50) DEFAULT 'UTC',
+//   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+//   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+//   INDEX idx_status (status),
+//   INDEX idx_manager (manager_id)
+// );
+//
 // CREATE TABLE products (
 //   id INT AUTO_INCREMENT PRIMARY KEY,
 //   name VARCHAR(255) NOT NULL,
@@ -191,18 +208,21 @@ export function createServer() {
 //   price DECIMAL(10, 2) NOT NULL,
 //   quantity INT NOT NULL DEFAULT 0,
 //   category VARCHAR(100),
-//   sku VARCHAR(100) UNIQUE,
+//   sku VARCHAR(100),
 //   barcode VARCHAR(100),
 //   minimum_stock INT DEFAULT 5,
 //   maximum_stock INT DEFAULT 100,
 //   supplier_id INT,
-//   location VARCHAR(100),
+//   store_id VARCHAR(50) NOT NULL, -- Links to stores table
+//   location_in_store VARCHAR(100), -- Aisle/shelf location within store
 //   status ENUM('active', 'inactive', 'discontinued') DEFAULT 'active',
 //   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 //   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-//   INDEX idx_category (category),
-//   INDEX idx_sku (sku),
-//   INDEX idx_status (status)
+//   FOREIGN KEY (store_id) REFERENCES stores(id) ON DELETE CASCADE,
+//   INDEX idx_store_category (store_id, category),
+//   INDEX idx_store_sku (store_id, sku),
+//   INDEX idx_status (status),
+//   UNIQUE KEY unique_sku_per_store (sku, store_id) -- SKU unique per store
 // );
 //
 // CREATE TABLE suppliers (
@@ -216,17 +236,39 @@ export function createServer() {
 //   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 // );
 //
+// CREATE TABLE user_store_access (
+//   id INT AUTO_INCREMENT PRIMARY KEY,
+//   user_id VARCHAR(255) NOT NULL, -- Cognito user ID
+//   store_id VARCHAR(50) NOT NULL,
+//   role ENUM('admin', 'manager', 'employee', 'viewer') NOT NULL,
+//   granted_by VARCHAR(255), -- Cognito user ID who granted access
+//   granted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+//   expires_at TIMESTAMP NULL, -- Optional expiration
+//   status ENUM('active', 'suspended', 'revoked') DEFAULT 'active',
+//   FOREIGN KEY (store_id) REFERENCES stores(id) ON DELETE CASCADE,
+//   INDEX idx_user_store (user_id, store_id),
+//   INDEX idx_store (store_id),
+//   INDEX idx_status (status),
+//   UNIQUE KEY unique_user_store (user_id, store_id)
+// );
+//
 // CREATE TABLE inventory_transactions (
 //   id INT AUTO_INCREMENT PRIMARY KEY,
 //   product_id INT NOT NULL,
-//   transaction_type ENUM('in', 'out', 'adjustment') NOT NULL,
+//   store_id VARCHAR(50) NOT NULL, -- Store where transaction occurred
+//   transaction_type ENUM('in', 'out', 'adjustment', 'transfer') NOT NULL,
 //   quantity INT NOT NULL,
 //   reference_number VARCHAR(100),
 //   notes TEXT,
-//   user_id VARCHAR(255),
+//   user_id VARCHAR(255), -- Cognito user ID who performed transaction
+//   transfer_to_store_id VARCHAR(50) NULL, -- For store-to-store transfers
 //   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 //   FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
-//   INDEX idx_product_id (product_id),
+//   FOREIGN KEY (store_id) REFERENCES stores(id) ON DELETE CASCADE,
+//   FOREIGN KEY (transfer_to_store_id) REFERENCES stores(id) ON DELETE SET NULL,
+//   INDEX idx_product_store (product_id, store_id),
+//   INDEX idx_store (store_id),
 //   INDEX idx_transaction_type (transaction_type),
-//   INDEX idx_created_at (created_at)
+//   INDEX idx_created_at (created_at),
+//   INDEX idx_user (user_id)
 // );

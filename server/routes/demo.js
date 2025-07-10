@@ -8,14 +8,19 @@
 
 export const handleDemo = async (req, res) => {
   try {
-    // AWS Lambda Function Invocation Example
+    // AWS Lambda Function Invocation Example with Store Filtering
     // const lambdaParams = {
     //   FunctionName: 'invencare-analytics-processor',
     //   InvocationType: 'RequestResponse',
     //   Payload: JSON.stringify({
     //     action: 'generateInventoryReport',
-    //     storeId: req.query.storeId || 'default',
-    //     dateRange: req.query.dateRange || '30days'
+    //     storeId: req.query.storeId || null, // null for all stores, specific ID for individual store
+    //     storeIds: req.query.storeIds ? req.query.storeIds.split(',') : [], // Multiple store IDs for managers
+    //     includeStoreBreakdown: req.query.storeId === 'all' || !req.query.storeId, // Include per-store data
+    //     userRole: req.headers['x-user-role'] || 'employee', // User role from Cognito token
+    //     userStoreAccess: req.headers['x-user-store-access'] || '', // Comma-separated store IDs user can access
+    //     dateRange: req.query.dateRange || '30days',
+    //     metrics: req.query.metrics ? req.query.metrics.split(',') : ['inventory', 'sales', 'alerts']
     //   })
     // };
 
