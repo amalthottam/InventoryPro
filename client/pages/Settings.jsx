@@ -26,6 +26,13 @@ import {
 
 export default function Settings() {
   const navigate = useNavigate();
+  const [profileData, setProfileData] = useState({
+    name: "Demo User",
+    email: "demo@invencare.com",
+    role: "Manager",
+    department: "Inventory",
+  });
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
 
   useEffect(() => {
     // Check authentication
@@ -39,6 +46,30 @@ export default function Settings() {
   const handleLogout = () => {
     localStorage.removeItem("isAuthenticated");
     navigate("/login");
+  };
+
+  const handleManageUsers = () => {
+    alert(
+      "User Management panel would open here. This would typically navigate to a dedicated user management page or open a modal.",
+    );
+  };
+
+  const handleSecuritySettings = () => {
+    alert(
+      "Security Settings panel would open here. This would configure 2FA, password policies, and session management.",
+    );
+  };
+
+  const handleSystemSettings = () => {
+    alert(
+      "System Settings panel would open here. This would configure database connections, backups, and API settings.",
+    );
+  };
+
+  const handleSaveProfile = (e) => {
+    e.preventDefault();
+    setIsEditingProfile(false);
+    alert("Profile saved successfully!");
   };
 
   return (
@@ -88,7 +119,11 @@ export default function Settings() {
                     <span>Pending Users</span>
                     <Badge variant="outline">3</Badge>
                   </div>
-                  <Button className="w-full" size="sm">
+                  <Button
+                    className="w-full"
+                    size="sm"
+                    onClick={handleManageUsers}
+                  >
                     Manage Users
                   </Button>
                 </div>
@@ -121,7 +156,11 @@ export default function Settings() {
                     <span>Password Policy</span>
                     <StatusBadge status="Active" />
                   </div>
-                  <Button className="w-full" size="sm">
+                  <Button
+                    className="w-full"
+                    size="sm"
+                    onClick={handleSecuritySettings}
+                  >
                     Security Settings
                   </Button>
                 </div>
@@ -152,7 +191,11 @@ export default function Settings() {
                     <span>API Status</span>
                     <StatusBadge status="Online" />
                   </div>
-                  <Button className="w-full" size="sm">
+                  <Button
+                    className="w-full"
+                    size="sm"
+                    onClick={handleSystemSettings}
+                  >
                     System Settings
                   </Button>
                 </div>
@@ -169,38 +212,69 @@ export default function Settings() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form className="space-y-4 max-w-md">
+              <form onSubmit={handleSaveProfile} className="space-y-4 max-w-md">
                 <div className="space-y-2">
                   <Label htmlFor="name">Full Name</Label>
-                  <Input id="name" defaultValue="Demo User" />
+                  <Input
+                    id="name"
+                    value={profileData.name}
+                    onChange={(e) =>
+                      setProfileData({ ...profileData, name: e.target.value })
+                    }
+                    disabled={!isEditingProfile}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
                     type="email"
-                    defaultValue="demo@invencare.com"
+                    value={profileData.email}
+                    onChange={(e) =>
+                      setProfileData({ ...profileData, email: e.target.value })
+                    }
+                    disabled={!isEditingProfile}
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="role">Role</Label>
                   <div className="flex items-center gap-2">
-                    <RoleBadge role="Manager" />
+                    <RoleBadge role={profileData.role} />
                     <span className="text-sm text-muted-foreground">
-                      Manager
+                      {profileData.role}
                     </span>
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="department">Department</Label>
                   <div className="flex items-center gap-2">
-                    <DepartmentBadge department="Inventory" />
+                    <DepartmentBadge department={profileData.department} />
                     <span className="text-sm text-muted-foreground">
-                      Inventory
+                      {profileData.department}
                     </span>
                   </div>
                 </div>
-                <Button type="submit">Save Changes</Button>
+                <div className="flex gap-2">
+                  {isEditingProfile ? (
+                    <>
+                      <Button type="submit">Save Changes</Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setIsEditingProfile(false)}
+                      >
+                        Cancel
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      type="button"
+                      onClick={() => setIsEditingProfile(true)}
+                    >
+                      Edit Profile
+                    </Button>
+                  )}
+                </div>
               </form>
             </CardContent>
           </Card>
