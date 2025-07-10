@@ -32,7 +32,7 @@ const products = [
     productId: "ORG-BAN-001",
     category: "Fruits & Vegetables",
     stock: 120,
-    storeName: "Fresh Farm",
+    storeName: "Downtown Store",
     unit: "kg",
     status: "Available",
     lastUpdated: "2024-01-15",
@@ -43,7 +43,7 @@ const products = [
     productId: "WHL-MLK-002",
     category: "Dairy",
     stock: 8,
-    storeName: "Pure Dairy",
+    storeName: "Mall Location",
     unit: "liter",
     status: "Low Stock",
     lastUpdated: "2024-01-14",
@@ -54,10 +54,21 @@ const products = [
     productId: "BRN-BRD-003",
     category: "Bakery",
     stock: 0,
-    storeName: "Baker's Best",
+    storeName: "Uptown Branch",
     unit: "loaf",
     status: "Out of Stock",
     lastUpdated: "2024-01-13",
+  },
+  {
+    id: "4",
+    productName: "Ground Coffee",
+    productId: "GRD-COF-004",
+    category: "Beverages",
+    stock: 45,
+    storeName: "Westside Market",
+    unit: "pack",
+    status: "Available",
+    lastUpdated: "2024-01-15",
   },
 ];
 
@@ -387,14 +398,21 @@ export default function Products() {
 
                   <div>
                     <Label htmlFor="storeName">Store Name</Label>
-                    <Input
+                    <select
                       id="storeName"
                       value={formData.storeName}
                       onChange={(e) =>
                         setFormData({ ...formData, storeName: e.target.value })
                       }
+                      className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
                       required
-                    />
+                    >
+                      <option value="">Select store</option>
+                      <option value="Downtown Store">Downtown Store</option>
+                      <option value="Mall Location">Mall Location</option>
+                      <option value="Uptown Branch">Uptown Branch</option>
+                      <option value="Westside Market">Westside Market</option>
+                    </select>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
