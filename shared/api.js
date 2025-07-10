@@ -46,13 +46,18 @@ export const TransactionType = {
   ADJUSTMENT: "adjustment",
 };
 
-// AWS Lambda Event Types
+// AWS Lambda Event Types with Store Context
 // export interface InventoryAnalyticsEvent {
-//   action: 'generateInventoryReport' | 'lowStockAlert' | 'salesAnalysis';
-//   storeId?: string;
+//   action: 'generateInventoryReport' | 'lowStockAlert' | 'salesAnalysis' | 'crossStoreComparison';
+//   storeId?: string; // null for all stores, specific ID for individual store
+//   storeIds?: string[]; // Multiple store IDs for managers with limited access
+//   includeStoreBreakdown?: boolean; // Include per-store metrics when viewing all stores
+//   userRole?: 'admin' | 'manager' | 'employee';
+//   userStoreAccess?: string[]; // List of store IDs user can access
 //   dateRange?: '7days' | '30days' | '90days';
 //   categoryFilter?: string;
-//   userId?: string;
+//   userId?: string; // Cognito user ID
+//   requestedMetrics?: string[]; // Specific metrics requested
 // }
 
 // export interface AutoReorderEvent {
@@ -69,7 +74,22 @@ export const TransactionType = {
 //   timeframe?: number;
 // }
 
-// AWS RDS Data Types
+// AWS RDS Data Types with Store Integration
+// export interface Store {
+//   id: string; // e.g., 'store_001'
+//   name: string; // e.g., 'Downtown Store'
+//   address: string;
+//   city: string;
+//   state: string;
+//   zip_code: string;
+//   phone: string;
+//   manager_id: string; // Cognito user ID
+//   status: 'active' | 'inactive' | 'maintenance';
+//   timezone: string;
+//   created_at: string;
+//   updated_at: string;
+// }
+//
 // export interface Product {
 //   id: number;
 //   name: string;
@@ -82,10 +102,24 @@ export const TransactionType = {
 //   minimum_stock: number;
 //   maximum_stock: number;
 //   supplier_id?: number;
-//   location?: string;
+//   store_id: string; // Links to Store
+//   location_in_store?: string; // Aisle/shelf location
 //   status: 'active' | 'inactive' | 'discontinued';
 //   created_at: string;
 //   updated_at: string;
+//   store?: Store; // Populated via JOIN
+// }
+//
+// export interface UserStoreAccess {
+//   id: number;
+//   user_id: string; // Cognito user ID
+//   store_id: string;
+//   role: 'admin' | 'manager' | 'employee' | 'viewer';
+//   granted_by: string;
+//   granted_at: string;
+//   expires_at?: string;
+//   status: 'active' | 'suspended' | 'revoked';
+//   store?: Store; // Populated via JOIN
 // }
 
 // export interface Supplier {
@@ -260,6 +294,32 @@ export const generateSKU = (productName, category) => {
   return `${categoryPrefix}-${namePrefix}-${randomSuffix}`;
 };
 
+// Store Management Utility Functions
+export const validateStoreAccess = (userStoreAccess, requestedStoreId) => {
+  if (!userStoreAccess || userStoreAccess === "all") return true;
+  if (!requestedStoreId || requestedStoreId === "all")
+    return userStoreAccess === "all";
+  return userStoreAccess.split(",").includes(requestedStoreId);
+};
+
+export const filterStoresByAccess = (stores, userStoreAccess) => {
+  if (!userStoreAccess || userStoreAccess === "all") return stores;
+  const accessibleStoreIds = userStoreAccess.split(",");
+  return stores.filter((store) => accessibleStoreIds.includes(store.id));
+};
+
+export const getDefaultStoreForUser = (
+  userRole,
+  userStoreAccess,
+  userPrimaryStore,
+) => {
+  if (userRole === "admin") return "all";
+  if (userRole === "employee" && userPrimaryStore) return userPrimaryStore;
+  if (userStoreAccess === "all") return "all";
+  const accessibleStores = userStoreAccess.split(",");
+  return accessibleStores.length === 1 ? accessibleStores[0] : "all";
+};
+
 // AWS Configuration Helpers
 export const getAWSConfig = () => ({
   region: process.env.AWS_REGION || "us-east-1",
@@ -278,6 +338,7 @@ export const getAWSConfig = () => ({
     analyticsFunction: process.env.LAMBDA_ANALYTICS_FUNCTION,
     reorderFunction: process.env.LAMBDA_REORDER_FUNCTION,
     priceOptimizationFunction: process.env.LAMBDA_PRICE_OPTIMIZATION_FUNCTION,
+    storeAnalyticsFunction: process.env.LAMBDA_STORE_ANALYTICS_FUNCTION,
   },
 });
 
