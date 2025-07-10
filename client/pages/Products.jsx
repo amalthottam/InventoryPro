@@ -22,6 +22,7 @@ import {
   Edit,
   Trash2,
   Eye,
+  X,
 } from "lucide-react";
 
 const products = [
@@ -65,6 +66,16 @@ export default function Products() {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [filteredProducts, setFilteredProducts] = useState(products);
+  const [allProducts, setAllProducts] = useState(products);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    productName: "",
+    productId: "",
+    category: "",
+    storeName: "",
+    stock: "",
+    unit: "",
+  });
 
   useEffect(() => {
     // Check authentication
@@ -81,7 +92,7 @@ export default function Products() {
   };
 
   useEffect(() => {
-    const filtered = products.filter((product) => {
+    const filtered = allProducts.filter((product) => {
       const matchesSearch =
         product.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.productId.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -91,9 +102,44 @@ export default function Products() {
       return matchesSearch && matchesCategory;
     });
     setFilteredProducts(filtered);
-  }, [searchTerm, categoryFilter]);
+  }, [searchTerm, categoryFilter, allProducts]);
 
-  const categories = [...new Set(products.map((p) => p.category))];
+  const categories = [...new Set(allProducts.map((p) => p.category))];
+
+  const handleAddProduct = (e) => {
+    e.preventDefault();
+    const newProduct = {
+      id: Date.now().toString(),
+      productName: formData.productName,
+      productId: formData.productId,
+      category: formData.category,
+      storeName: formData.storeName,
+      stock: parseInt(formData.stock),
+      unit: formData.unit,
+      status:
+        parseInt(formData.stock) === 0
+          ? "Out of Stock"
+          : parseInt(formData.stock) < 10
+            ? "Low Stock"
+            : "Available",
+      lastUpdated: new Date().toISOString().split("T")[0],
+    };
+
+    setAllProducts([...allProducts, newProduct]);
+    setFormData({
+      productName: "",
+      productId: "",
+      category: "",
+      storeName: "",
+      stock: "",
+      unit: "",
+    });
+    setIsAddModalOpen(false);
+  };
+
+  const handleDeleteProduct = (id) => {
+    setAllProducts(allProducts.filter((p) => p.id !== id));
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -121,7 +167,7 @@ export default function Products() {
                 <Eye className="h-4 w-4 mr-2" />
                 View Dashboard
               </Button>
-              <Button>
+              <Button onClick={() => setIsAddModalOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Product
               </Button>
@@ -229,6 +275,7 @@ export default function Products() {
                       <th className="text-left p-4 font-semibold">
                         Last Updated
                       </th>
+                      <th className="text-left p-4 font-semibold">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -253,6 +300,16 @@ export default function Products() {
                           <StatusBadge status={product.status} />
                         </td>
                         <td className="p-4">{product.lastUpdated}</td>
+                        <td className="p-4">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteProduct(product.id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -260,6 +317,140 @@ export default function Products() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Add Product Modal */}
+          {isAddModalOpen && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-semibold">Add New Product</h2>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsAddModalOpen(false)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                <form onSubmit={handleAddProduct} className="space-y-4">
+                  <div>
+                    <Label htmlFor="productName">Product Name</Label>
+                    <Input
+                      id="productName"
+                      value={formData.productName}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          productName: e.target.value,
+                        })
+                      }
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="productId">Product ID</Label>
+                    <Input
+                      id="productId"
+                      value={formData.productId}
+                      onChange={(e) =>
+                        setFormData({ ...formData, productId: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="category">Category</Label>
+                    <select
+                      id="category"
+                      value={formData.category}
+                      onChange={(e) =>
+                        setFormData({ ...formData, category: e.target.value })
+                      }
+                      className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      required
+                    >
+                      <option value="">Select category</option>
+                      <option value="Fruits & Vegetables">
+                        Fruits & Vegetables
+                      </option>
+                      <option value="Dairy">Dairy</option>
+                      <option value="Bakery">Bakery</option>
+                      <option value="Meat & Poultry">Meat & Poultry</option>
+                      <option value="Seafood">Seafood</option>
+                      <option value="Beverages">Beverages</option>
+                      <option value="Snacks">Snacks</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="storeName">Store Name</Label>
+                    <Input
+                      id="storeName"
+                      value={formData.storeName}
+                      onChange={(e) =>
+                        setFormData({ ...formData, storeName: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label htmlFor="stock">Stock</Label>
+                      <Input
+                        id="stock"
+                        type="number"
+                        value={formData.stock}
+                        onChange={(e) =>
+                          setFormData({ ...formData, stock: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="unit">Unit</Label>
+                      <select
+                        id="unit"
+                        value={formData.unit}
+                        onChange={(e) =>
+                          setFormData({ ...formData, unit: e.target.value })
+                        }
+                        className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                        required
+                      >
+                        <option value="">Select unit</option>
+                        <option value="kg">kg</option>
+                        <option value="liter">liter</option>
+                        <option value="piece">piece</option>
+                        <option value="pack">pack</option>
+                        <option value="bottle">bottle</option>
+                        <option value="can">can</option>
+                        <option value="box">box</option>
+                        <option value="loaf">loaf</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 pt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsAddModalOpen(false)}
+                      className="flex-1"
+                    >
+                      Cancel
+                    </Button>
+                    <Button type="submit" className="flex-1">
+                      Add Product
+                    </Button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </main>
       </div>
     </div>
