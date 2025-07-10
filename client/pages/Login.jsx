@@ -43,16 +43,54 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      // AWS Cognito Sign In Implementation
+      // AWS Cognito Sign In Implementation with Store Access Validation
       // const { isSignedIn, nextStep } = await signIn({
       //   username: formData.email,
       //   password: formData.password,
       // });
       //
       // if (isSignedIn) {
+      //   // After successful sign-in, fetch user attributes to validate store access
+      //   const userAttributes = await fetchUserAttributes();
+      //   const userStatus = userAttributes['custom:status'];
+      //   const storeAccess = userAttributes['custom:store_access'];
+      //   const userRole = userAttributes['custom:role'];
+      //
+      //   // Validate user account status
+      //   if (userStatus === 'inactive' || userStatus === 'suspended') {
+      //     await signOut();
+      //     toast({
+      //       title: "Account Inactive",
+      //       description: "Your account has been deactivated. Please contact your administrator.",
+      //       variant: "destructive",
+      //     });
+      //     return;
+      //   }
+      //
+      //   if (userStatus === 'pending') {
+      //     await signOut();
+      //     toast({
+      //       title: "Account Pending Approval",
+      //       description: "Your account is pending admin approval. Please wait for activation.",
+      //       variant: "destructive",
+      //     });
+      //     return;
+      //   }
+      //
+      //   // Validate store access
+      //   if (!storeAccess || (storeAccess !== 'all' && !storeAccess.includes('store_'))) {
+      //     await signOut();
+      //     toast({
+      //       title: "No Store Access",
+      //       description: "You don't have access to any stores. Please contact your administrator.",
+      //       variant: "destructive",
+      //     });
+      //     return;
+      //   }
+      //
       //   toast({
       //     title: "Success",
-      //     description: "Successfully signed in!",
+      //     description: `Welcome back! You have ${storeAccess === 'all' ? 'full' : 'limited'} store access.`,
       //   });
       //   navigate("/dashboard");
       // } else {
@@ -78,28 +116,39 @@ export default function Login() {
     }
   };
 
-  // AWS Cognito Sign Up
+  // AWS Cognito Sign Up with Store Assignment
   const handleSignUp = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      // AWS Cognito Sign Up Implementation
+      // AWS Cognito Sign Up Implementation with Store-Based Attributes
       // const { isSignUpComplete, userId, nextStep } = await signUp({
       //   username: formData.email,
       //   password: formData.password,
       //   options: {
       //     userAttributes: {
       //       email: formData.email,
+      //       given_name: formData.firstName || '',
+      //       family_name: formData.lastName || '',
+      //       'custom:role': 'employee', // Default role for new signups
+      //       'custom:primary_store': 'store_001', // Assign to default store (can be changed by admin)
+      //       'custom:store_access': 'store_001', // Initial access to primary store only
+      //       'custom:department': 'general', // Department assignment
+      //       'custom:hire_date': new Date().toISOString().split('T')[0],
+      //       'custom:status': 'pending' // Account needs admin approval
       //     },
       //   },
       // });
+      //
+      // // Note: In production, new employee accounts should require admin approval
+      // // before gaining access to store systems and inventory data
       //
       // if (nextStep.signUpStep === 'CONFIRM_SIGN_UP') {
       //   setConfirmationStep(true);
       //   toast({
       //     title: "Confirmation Required",
-      //     description: "Please check your email for confirmation code",
+      //     description: "Please check your email for confirmation code. Admin approval may be required.",
       //   });
       // }
 
