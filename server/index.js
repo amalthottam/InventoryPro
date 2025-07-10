@@ -256,13 +256,21 @@ export function createServer() {
 //   id INT AUTO_INCREMENT PRIMARY KEY,
 //   product_id INT NOT NULL,
 //   store_id VARCHAR(50) NOT NULL, -- Store where transaction occurred
-//   transaction_type ENUM('in', 'out', 'adjustment', 'transfer') NOT NULL,
-//   quantity INT NOT NULL,
-//   reference_number VARCHAR(100),
+//   transaction_type ENUM('sale', 'restock', 'adjustment', 'transfer') NOT NULL, -- Updated for Transaction page types
+//   quantity INT NOT NULL, -- Positive for inbound, negative for outbound/adjustments
+//   unit_price DECIMAL(10, 2) NOT NULL, -- Price per unit at time of transaction
+//   total_amount DECIMAL(12, 2) NOT NULL, -- Total transaction value (quantity * unit_price)
+//   reference_number VARCHAR(100) UNIQUE, -- Auto-generated reference (SALE-2024-001, RST-2024-002, etc.)
 //   notes TEXT,
 //   user_id VARCHAR(255), -- Cognito user ID who performed transaction
+//   user_name VARCHAR(255), -- User's display name from Cognito attributes
 //   transfer_to_store_id VARCHAR(50) NULL, -- For store-to-store transfers
+//   transfer_to_store_name VARCHAR(255) NULL, -- Destination store name for transfers
+//   category VARCHAR(100), -- Product category for analytics aggregation
+//   product_name VARCHAR(255), -- Product name snapshot for historical records
+//   audit_trail JSON, -- Additional metadata: IP address, session info, approval chain
 //   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+//   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 //   FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
 //   FOREIGN KEY (store_id) REFERENCES stores(id) ON DELETE CASCADE,
 //   FOREIGN KEY (transfer_to_store_id) REFERENCES stores(id) ON DELETE SET NULL,
@@ -270,5 +278,28 @@ export function createServer() {
 //   INDEX idx_store (store_id),
 //   INDEX idx_transaction_type (transaction_type),
 //   INDEX idx_created_at (created_at),
-//   INDEX idx_user (user_id)
+//   INDEX idx_user (user_id),
+//   INDEX idx_reference_number (reference_number),
+//   INDEX idx_category (category),
+//   INDEX idx_transfer_stores (store_id, transfer_to_store_id),
+//   INDEX idx_analytics (store_id, transaction_type, created_at) -- For Lambda analytics queries
+// );
+//
+// -- Transaction Audit Log Table
+// CREATE TABLE transaction_audit_log (
+//   id INT AUTO_INCREMENT PRIMARY KEY,
+//   transaction_id INT NOT NULL,
+//   action ENUM('created', 'modified', 'approved', 'rejected', 'voided') NOT NULL,
+//   performed_by VARCHAR(255) NOT NULL, -- Cognito user ID
+//   old_values JSON, -- Previous values before modification
+//   new_values JSON, -- New values after modification
+//   reason TEXT, -- Reason for modification/approval/rejection
+//   ip_address VARCHAR(45),
+//   user_agent TEXT,
+//   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+//   FOREIGN KEY (transaction_id) REFERENCES inventory_transactions(id) ON DELETE CASCADE,
+//   INDEX idx_transaction (transaction_id),
+//   INDEX idx_user (performed_by),
+//   INDEX idx_action (action),
+//   INDEX idx_created_at (created_at)
 // );

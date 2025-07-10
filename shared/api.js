@@ -60,6 +60,47 @@ export const TransactionType = {
 //   requestedMetrics?: string[]; // Specific metrics requested
 // }
 
+// export interface TransactionAnalyticsEvent {
+//   action: 'generateTransactionReport' | 'salesAnalysis' | 'transferAnalysis' | 'auditReport' | 'realTimeMetrics';
+//   storeId?: string; // null for all stores, specific ID for individual store
+//   storeIds?: string[]; // Multiple store IDs for managers
+//   transactionTypes?: ('sale' | 'restock' | 'adjustment' | 'transfer')[]; // Filter by transaction types
+//   dateRange?: 'today' | 'week' | 'month' | 'quarter' | 'year' | 'custom';
+//   startDate?: string; // For custom date ranges
+//   endDate?: string; // For custom date ranges
+//   categoryFilter?: string; // Filter by product category
+//   userRole?: 'admin' | 'manager' | 'employee';
+//   userStoreAccess?: string[]; // Store access validation
+//   userId?: string; // Cognito user ID for audit
+//   aggregationLevel?: 'hourly' | 'daily' | 'weekly' | 'monthly';
+//   includeAuditTrail?: boolean; // Include transaction audit data
+//   includeStoreBreakdown?: boolean; // Per-store metrics breakdown
+//   metrics?: string[]; // Specific metrics: ['volume', 'value', 'frequency', 'trends']
+// }
+
+// export interface TransactionProcessorEvent {
+//   transaction: {
+//     productId: number;
+//     storeId: string;
+//     type: 'sale' | 'restock' | 'adjustment' | 'transfer';
+//     quantity: number;
+//     unitPrice: number;
+//     totalAmount: number;
+//     transferToStoreId?: string;
+//     transferToStoreName?: string;
+//     notes?: string;
+//     category: string;
+//     productName: string;
+//     referenceNumber: string;
+//   };
+//   userId: string; // Cognito user ID
+//   userRole: 'admin' | 'manager' | 'employee';
+//   userName: string; // From Cognito attributes
+//   ipAddress?: string; // For audit trail
+//   sessionId?: string; // Session tracking
+//   requireApproval?: boolean; // High-value transactions
+// }
+
 // export interface AutoReorderEvent {
 //   storeId?: string;
 //   forceReorder?: boolean;
@@ -136,12 +177,38 @@ export const TransactionType = {
 // export interface InventoryTransaction {
 //   id: number;
 //   product_id: number;
-//   transaction_type: 'in' | 'out' | 'adjustment';
-//   quantity: number;
-//   reference_number?: string;
+//   store_id: string; // Store where transaction occurred
+//   transaction_type: 'sale' | 'restock' | 'adjustment' | 'transfer';
+//   quantity: number; // Positive for inbound, negative for outbound
+//   unit_price: number; // Price per unit at transaction time
+//   total_amount: number; // Total transaction value
+//   reference_number: string; // Unique transaction reference (SALE-2024-001, etc.)
 //   notes?: string;
-//   user_id?: string;
+//   user_id: string; // Cognito user ID
+//   user_name: string; // User display name
+//   transfer_to_store_id?: string; // For store-to-store transfers
+//   transfer_to_store_name?: string; // Destination store name
+//   category: string; // Product category for analytics
+//   product_name: string; // Product name snapshot
+//   audit_trail?: any; // Additional metadata as JSON
 //   created_at: string;
+//   updated_at: string;
+//   store?: Store; // Populated via JOIN
+//   product?: Product; // Populated via JOIN
+// }
+
+// export interface TransactionAuditLog {
+//   id: number;
+//   transaction_id: number;
+//   action: 'created' | 'modified' | 'approved' | 'rejected' | 'voided';
+//   performed_by: string; // Cognito user ID
+//   old_values?: any; // Previous values as JSON
+//   new_values?: any; // New values as JSON
+//   reason?: string; // Modification reason
+//   ip_address?: string;
+//   user_agent?: string;
+//   created_at: string;
+//   transaction?: InventoryTransaction; // Populated via JOIN
 // }
 
 // export interface ReorderRequest {
@@ -232,6 +299,78 @@ export const TransactionType = {
 //   }>;
 // }
 
+// export interface TransactionAnalyticsResponse {
+//   message: string;
+//   storeId?: string;
+//   storeName?: string;
+//   dateRange: string;
+//   transactionAnalytics?: Array<{
+//     transaction_type: string;
+//     store_id: string;
+//     store_name: string;
+//     transaction_count: number;
+//     total_value: number;
+//     avg_transaction_value: number;
+//     total_sales: number;
+//     transfer_count: number;
+//   }>;
+//   salesTrends?: Array<{
+//     transaction_date: string;
+//     store_id: string;
+//     store_name: string;
+//     sales_count: number;
+//     daily_sales: number;
+//     avg_sale_value: number;
+//   }>;
+//   transferAnalytics?: Array<{
+//     from_store: string;
+//     from_store_name: string;
+//     to_store: string;
+//     to_store_name: string;
+//     transfer_count: number;
+//     total_transfer_value: number;
+//     avg_quantity_transferred: number;
+//   }>;
+//   summaryMetrics?: {
+//     totalTransactions: number;
+//     totalSalesValue: number;
+//     totalRestocks: number;
+//     totalTransfers: number;
+//     totalAdjustments: number;
+//     avgTransactionValue: number;
+//     topPerformingStores: Array<{
+//       store_id: string;
+//       store_name: string;
+//       total_sales: number;
+//       transaction_count: number;
+//     }>;
+//   };
+// }
+
+// export interface TransactionListResponse {
+//   transactions: InventoryTransaction[];
+//   pagination?: {
+//     page: number;
+//     limit: number;
+//     total: number;
+//     totalPages: number;
+//   };
+//   filters?: {
+//     storeId?: string;
+//     transactionType?: string;
+//     dateRange?: string;
+//     categoryFilter?: string;
+//     userFilter?: string;
+//   };
+//   summaryStats?: {
+//     totalTransactions: number;
+//     totalSales: number;
+//     totalRestocks: number;
+//     totalTransfers: number;
+//     totalAdjustments: number;
+//   };
+// }
+
 // Validation Functions
 export const validateEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -320,6 +459,110 @@ export const getDefaultStoreForUser = (
   return accessibleStores.length === 1 ? accessibleStores[0] : "all";
 };
 
+// Transaction Validation Functions
+export const validateTransactionType = (type) => {
+  const validTypes = ["sale", "restock", "adjustment", "transfer"];
+  return validTypes.includes(type.toLowerCase());
+};
+
+export const validateTransactionAmount = (amount) => {
+  return typeof amount === "number" && amount > 0 && amount < 9999999.99;
+};
+
+export const validateReferenceNumber = (refNumber) => {
+  const refRegex = /^(SALE|RST|ADJ|TRF)-\d{4}-\d+$/;
+  return refRegex.test(refNumber);
+};
+
+export const generateTransactionReference = (type, year = null) => {
+  const currentYear = year || new Date().getFullYear();
+  const typePrefix = type.toUpperCase().substring(0, 3);
+  const timestamp = Date.now();
+  return `${typePrefix}-${currentYear}-${timestamp}`;
+};
+
+// Transaction Utility Functions
+export const calculateTransactionMetrics = (transactions) => {
+  const metrics = {
+    totalTransactions: transactions.length,
+    totalSales: 0,
+    totalRestocks: 0,
+    totalTransfers: 0,
+    totalAdjustments: 0,
+    salesValue: 0,
+    avgTransactionValue: 0,
+  };
+
+  transactions.forEach((txn) => {
+    switch (txn.transaction_type || txn.type) {
+      case "sale":
+        metrics.totalSales++;
+        metrics.salesValue += txn.total_amount || txn.totalAmount || 0;
+        break;
+      case "restock":
+        metrics.totalRestocks++;
+        break;
+      case "transfer":
+        metrics.totalTransfers++;
+        break;
+      case "adjustment":
+        metrics.totalAdjustments++;
+        break;
+    }
+  });
+
+  metrics.avgTransactionValue =
+    metrics.totalTransactions > 0
+      ? metrics.salesValue / metrics.totalTransactions
+      : 0;
+
+  return metrics;
+};
+
+export const groupTransactionsByStore = (transactions) => {
+  return transactions.reduce((acc, txn) => {
+    const storeId = txn.store_id || txn.storeId;
+    if (!acc[storeId]) {
+      acc[storeId] = {
+        storeId,
+        storeName: txn.store_name || txn.storeName,
+        transactions: [],
+        metrics: null,
+      };
+    }
+    acc[storeId].transactions.push(txn);
+    return acc;
+  }, {});
+};
+
+export const filterTransactionsByDateRange = (transactions, dateRange) => {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  return transactions.filter((txn) => {
+    const txnDate = new Date(txn.created_at || txn.timestamp);
+
+    switch (dateRange) {
+      case "today":
+        return txnDate >= today;
+      case "week":
+        const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+        return txnDate >= weekAgo;
+      case "month":
+        const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+        return txnDate >= monthAgo;
+      case "quarter":
+        const quarterAgo = new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000);
+        return txnDate >= quarterAgo;
+      case "year":
+        const yearAgo = new Date(today.getTime() - 365 * 24 * 60 * 60 * 1000);
+        return txnDate >= yearAgo;
+      default:
+        return true;
+    }
+  });
+};
+
 // AWS Configuration Helpers
 export const getAWSConfig = () => ({
   region: process.env.AWS_REGION || "us-east-1",
@@ -339,6 +582,10 @@ export const getAWSConfig = () => ({
     reorderFunction: process.env.LAMBDA_REORDER_FUNCTION,
     priceOptimizationFunction: process.env.LAMBDA_PRICE_OPTIMIZATION_FUNCTION,
     storeAnalyticsFunction: process.env.LAMBDA_STORE_ANALYTICS_FUNCTION,
+    transactionAnalyticsFunction:
+      process.env.LAMBDA_TRANSACTION_ANALYTICS_FUNCTION,
+    transactionProcessorFunction:
+      process.env.LAMBDA_TRANSACTION_PROCESSOR_FUNCTION,
   },
 });
 

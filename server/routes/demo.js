@@ -8,19 +8,24 @@
 
 export const handleDemo = async (req, res) => {
   try {
-    // AWS Lambda Function Invocation Example with Store Filtering
+    // AWS Lambda Function Invocation Example with Transaction Analytics
     // const lambdaParams = {
-    //   FunctionName: 'invencare-analytics-processor',
+    //   FunctionName: 'invencare-transaction-analytics',
     //   InvocationType: 'RequestResponse',
     //   Payload: JSON.stringify({
-    //     action: 'generateInventoryReport',
+    //     action: req.query.action || 'generateTransactionReport', // generateTransactionReport, salesAnalysis, transferAnalysis, auditReport
     //     storeId: req.query.storeId || null, // null for all stores, specific ID for individual store
     //     storeIds: req.query.storeIds ? req.query.storeIds.split(',') : [], // Multiple store IDs for managers
-    //     includeStoreBreakdown: req.query.storeId === 'all' || !req.query.storeId, // Include per-store data
+    //     includeStoreBreakdown: req.query.storeId === 'all' || !req.query.storeId, // Include per-store metrics
+    //     transactionTypes: req.query.types ? req.query.types.split(',') : ['sale', 'restock', 'adjustment', 'transfer'],
     //     userRole: req.headers['x-user-role'] || 'employee', // User role from Cognito token
     //     userStoreAccess: req.headers['x-user-store-access'] || '', // Comma-separated store IDs user can access
-    //     dateRange: req.query.dateRange || '30days',
-    //     metrics: req.query.metrics ? req.query.metrics.split(',') : ['inventory', 'sales', 'alerts']
+    //     userId: req.headers['x-user-id'] || '', // Cognito user ID for audit trail
+    //     dateRange: req.query.dateRange || '30days', // today, week, month, year, custom
+    //     categoryFilter: req.query.category || null, // Filter by product category
+    //     metrics: req.query.metrics ? req.query.metrics.split(',') : ['transactions', 'sales', 'transfers', 'adjustments'],
+    //     includeAuditTrail: req.query.audit === 'true', // Include audit log data
+    //     aggregationLevel: req.query.aggregation || 'daily' // hourly, daily, weekly, monthly
     //   })
     // };
 
@@ -206,11 +211,10 @@ export const handleDemo = async (req, res) => {
 //   }
 // };
 
-// Lambda Function 3: Price Optimization
-// export const priceOptimizationHandler = async (event, context) => {
+// Lambda Function 3: Transaction Analytics Processor
+// export const transactionAnalyticsHandler = async (event, context) => {
 //   try {
-//     // This Lambda could analyze sales data, competitor pricing,
-//     // market trends, and suggest optimal pricing strategies
+//     const { action, storeId, transactionTypes, dateRange, userStoreAccess } = event;
 //
 //     const connection = await mysql.createConnection({
 //       host: process.env.RDS_HOSTNAME,
@@ -219,67 +223,174 @@ export const handleDemo = async (req, res) => {
 //       database: process.env.RDS_DB_NAME
 //     });
 //
-//     // Get sales velocity and profit margins
-//     const [salesData] = await connection.execute(`
-//       SELECT
-//         p.id,
-//         p.name,
-//         p.price,
-//         p.category,
-//         COALESCE(SUM(it.quantity), 0) as total_sold,
-//         COALESCE(AVG(CASE WHEN it.transaction_type = 'out' THEN it.quantity END), 0) as avg_daily_sales
-//       FROM products p
-//       LEFT JOIN inventory_transactions it ON p.id = it.product_id
-//       WHERE it.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
-//       GROUP BY p.id
-//       HAVING total_sold > 0
-//       ORDER BY total_sold DESC
-//     `);
+//     let result;
+//     const storeFilter = storeId && storeId !== 'all' ? 'AND it.store_id = ?' : '';
+//     const dateFilter = `AND it.created_at >= DATE_SUB(NOW(), INTERVAL ${dateRange === '30days' ? 30 : 7} DAY)`;
 //
-//     const pricingRecommendations = salesData.map(product => {
-//       // Simple pricing algorithm (in reality, this would be more sophisticated)
-//       const salesVelocity = product.avg_daily_sales;
-//       const currentPrice = product.price;
+//     switch (action) {
+//       case 'generateTransactionReport':
+//         const [transactionData] = await connection.execute(`
+//           SELECT
+//             it.transaction_type,
+//             it.store_id,
+//             s.name as store_name,
+//             COUNT(*) as transaction_count,
+//             SUM(it.total_amount) as total_value,
+//             AVG(it.total_amount) as avg_transaction_value,
+//             SUM(CASE WHEN it.transaction_type = 'sale' THEN it.total_amount ELSE 0 END) as total_sales,
+//             COUNT(CASE WHEN it.transaction_type = 'transfer' THEN 1 END) as transfer_count
+//           FROM inventory_transactions it
+//           JOIN stores s ON it.store_id = s.id
+//           WHERE 1=1 ${storeFilter} ${dateFilter}
+//           GROUP BY it.transaction_type, it.store_id
+//           ORDER BY total_value DESC
+//         `, storeId && storeId !== 'all' ? [storeId] : []);
 //
-//       let recommendedAction = 'maintain';
-//       let recommendedPrice = currentPrice;
-//       let reason = 'Current pricing is optimal';
+//         result = { transactionAnalytics: transactionData };
+//         break;
 //
-//       if (salesVelocity > 10) {
-//         // High demand - consider price increase
-//         recommendedPrice = currentPrice * 1.05;
-//         recommendedAction = 'increase';
-//         reason = 'High demand allows for price increase';
-//       } else if (salesVelocity < 2) {
-//         // Low demand - consider price decrease
-//         recommendedPrice = currentPrice * 0.95;
-//         recommendedAction = 'decrease';
-//         reason = 'Low demand suggests price reduction needed';
-//       }
+//       case 'salesAnalysis':
+//         const [salesTrends] = await connection.execute(`
+//           SELECT
+//             DATE(it.created_at) as transaction_date,
+//             it.store_id,
+//             s.name as store_name,
+//             COUNT(*) as sales_count,
+//             SUM(it.total_amount) as daily_sales,
+//             AVG(it.total_amount) as avg_sale_value
+//           FROM inventory_transactions it
+//           JOIN stores s ON it.store_id = s.id
+//           WHERE it.transaction_type = 'sale' ${storeFilter} ${dateFilter}
+//           GROUP BY DATE(it.created_at), it.store_id
+//           ORDER BY transaction_date DESC, daily_sales DESC
+//         `, storeId && storeId !== 'all' ? [storeId] : []);
 //
-//       return {
-//         productId: product.id,
-//         productName: product.name,
-//         category: product.category,
-//         currentPrice,
-//         recommendedPrice: parseFloat(recommendedPrice.toFixed(2)),
-//         action: recommendedAction,
-//         reason,
-//         salesVelocity: parseFloat(salesVelocity.toFixed(2))
-//       };
-//     });
+//         result = { salesTrends };
+//         break;
+//
+//       case 'transferAnalysis':
+//         const [transferData] = await connection.execute(`
+//           SELECT
+//             it.store_id as from_store,
+//             sf.name as from_store_name,
+//             it.transfer_to_store_id as to_store,
+//             st.name as to_store_name,
+//             COUNT(*) as transfer_count,
+//             SUM(it.total_amount) as total_transfer_value,
+//             AVG(it.quantity) as avg_quantity_transferred
+//           FROM inventory_transactions it
+//           JOIN stores sf ON it.store_id = sf.id
+//           JOIN stores st ON it.transfer_to_store_id = st.id
+//           WHERE it.transaction_type = 'transfer' ${dateFilter}
+//           GROUP BY it.store_id, it.transfer_to_store_id
+//           ORDER BY transfer_count DESC
+//         `);
+//
+//         result = { transferAnalytics: transferData };
+//         break;
+//
+//       default:
+//         throw new Error('Unknown action');
+//     }
 //
 //     await connection.end();
 //
 //     return {
 //       statusCode: 200,
-//       body: JSON.stringify({
-//         message: 'Price optimization analysis complete',
-//         recommendations: pricingRecommendations
-//       })
+//       body: JSON.stringify(result)
 //     };
 //   } catch (error) {
-//     console.error('Price optimization error:', error);
+//     console.error('Transaction analytics error:', error);
+//     return {
+//       statusCode: 500,
+//       body: JSON.stringify({ error: error.message })
+//     };
+//   }
+// };
+//
+// Lambda Function 4: Transaction Processor
+// export const transactionProcessorHandler = async (event, context) => {
+//   try {
+//     const { transaction, userId, userRole } = event;
+//
+//     const connection = await mysql.createConnection({
+//       host: process.env.RDS_HOSTNAME,
+//       user: process.env.RDS_USERNAME,
+//       password: process.env.RDS_PASSWORD,
+//       database: process.env.RDS_DB_NAME
+//     });
+//
+//     await connection.beginTransaction();
+//
+//     try {
+//       // Insert transaction record
+//       const [transactionResult] = await connection.execute(`
+//         INSERT INTO inventory_transactions (
+//           product_id, store_id, transaction_type, quantity, unit_price,
+//           total_amount, reference_number, notes, user_id, user_name,
+//           transfer_to_store_id, transfer_to_store_name, category, product_name
+//         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+//       `, [
+//         transaction.productId, transaction.storeId, transaction.type.toLowerCase(),
+//         transaction.quantity, transaction.unitPrice, transaction.totalAmount,
+//         transaction.referenceNumber, transaction.notes, userId, transaction.userName,
+//         transaction.transferToStoreId, transaction.transferToStoreName,
+//         transaction.category, transaction.productName
+//       ]);
+//
+//       // Update product inventory based on transaction type
+//       switch (transaction.type.toLowerCase()) {
+//         case 'sale':
+//         case 'adjustment':
+//           await connection.execute(`
+//             UPDATE products SET quantity = quantity + ? WHERE id = ? AND store_id = ?
+//           `, [transaction.quantity, transaction.productId, transaction.storeId]);
+//           break;
+//
+//         case 'restock':
+//           await connection.execute(`
+//             UPDATE products SET quantity = quantity + ? WHERE id = ? AND store_id = ?
+//           `, [Math.abs(transaction.quantity), transaction.productId, transaction.storeId]);
+//           break;
+//
+//         case 'transfer':
+//           // Decrease from source store
+//           await connection.execute(`
+//             UPDATE products SET quantity = quantity - ? WHERE id = ? AND store_id = ?
+//           `, [Math.abs(transaction.quantity), transaction.productId, transaction.storeId]);
+//
+//           // Increase in destination store
+//           await connection.execute(`
+//             UPDATE products SET quantity = quantity + ? WHERE id = ? AND store_id = ?
+//           `, [Math.abs(transaction.quantity), transaction.productId, transaction.transferToStoreId]);
+//           break;
+//       }
+//
+//       // Log audit trail
+//       await connection.execute(`
+//         INSERT INTO transaction_audit_log (
+//           transaction_id, action, performed_by, new_values, ip_address
+//         ) VALUES (?, 'created', ?, ?, ?)
+//       `, [
+//         transactionResult.insertId, userId,
+//         JSON.stringify(transaction), event.ipAddress || '0.0.0.0'
+//       ]);
+//
+//       await connection.commit();
+//
+//       return {
+//         statusCode: 200,
+//         body: JSON.stringify({
+//           message: 'Transaction processed successfully',
+//           transactionId: transactionResult.insertId
+//         })
+//       };
+//     } catch (error) {
+//       await connection.rollback();
+//       throw error;
+//     }
+//   } catch (error) {
+//     console.error('Transaction processor error:', error);
 //     return {
 //       statusCode: 500,
 //       body: JSON.stringify({ error: error.message })
