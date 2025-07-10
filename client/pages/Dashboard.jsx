@@ -452,8 +452,8 @@ export default function Dashboard() {
       <div className="lg:pl-64">
         <main className="container mx-auto px-4 py-8">
           {/* Header */}
-          <div className="flex justify-between items-center mb-8">
-            <div>
+          <div className="flex justify-between items-start mb-8">
+            <div className="flex-1">
               <h1 className="text-3xl font-bold tracking-tight">
                 Welcome back, {user?.attributes?.given_name || "User"}!
               </h1>
@@ -469,12 +469,42 @@ export default function Dashboard() {
                   timeStyle: "short",
                 })}
               </p>
-              {user?.attributes?.["custom:store_id"] && (
-                <Badge variant="secondary" className="mt-2">
-                  Store: {user.attributes["custom:store_id"]}
-                </Badge>
-              )}
+
+              {/* Store Selector */}
+              <div className="mt-4">
+                <div className="flex items-center gap-3">
+                  <Building className="h-5 w-5 text-muted-foreground" />
+                  <select
+                    value={selectedStore}
+                    onChange={(e) => setSelectedStore(e.target.value)}
+                    className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm font-medium min-w-[200px]"
+                  >
+                    {stores.map((store) => (
+                      <option key={store.id} value={store.id}>
+                        {store.name}
+                      </option>
+                    ))}
+                  </select>
+                  {selectedStore !== "all" && (
+                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                      <MapPin className="h-4 w-4" />
+                      {stores.find((s) => s.id === selectedStore)?.location}
+                    </div>
+                  )}
+                </div>
+
+                {selectedStore === "all" ? (
+                  <Badge variant="default" className="mt-2">
+                    Viewing All Stores Combined
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary" className="mt-2">
+                    {stores.find((s) => s.id === selectedStore)?.name}
+                  </Badge>
+                )}
+              </div>
             </div>
+
             <div className="flex gap-2">
               <Button onClick={() => navigate("/products")}>
                 <Eye className="h-4 w-4 mr-2" />
